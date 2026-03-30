@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import CONFIG from '../../api/config'; // Importing your dynamic config
 
 export default function Login() {
   const [password, setPassword] = useState('');
@@ -15,19 +16,27 @@ export default function Login() {
     setError('');
 
     try {
-      // Pointing to your Node.js server
-      const res = await axios.post('http://localhost:5000/api/auth/login', 
+      // 1. Pointing to your Production Render API
+      const res = await axios.post(`${CONFIG.API_URL}/auth/login`, 
         { password },
-        { withCredentials: true } // CRITICAL: Allows the secure cookie to be saved
+        { withCredentials: true } // Allows the secure cookie to be saved
       );
 
       if (res.data.success) {
-        // Redirect to Dashboard on success
+        // 2. CRITICAL UPDATE: Store user data for the AdminGuard in App.jsx
+        // We manually set the email here since your backend only checks the password
+        const userData = {
+          email: "bilel.thedeveloper@gmail.com",
+          token: res.data.token // If your backend returns a token string
+        };
+        
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        // 3. Redirect to Dashboard on success
         navigate('/admin');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Unauthorized Access');
-      // Haptic-style shake animation trigger could go here
     } finally {
       setLoading(false);
     }
