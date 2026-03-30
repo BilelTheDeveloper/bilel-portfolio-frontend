@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #3b82f6; /* A clean professional blue */
+  --color-brand-dark: #0f172a;    /* Deep navy for backgrounds */
+  --font-sans: "Inter", ui-sans-serif, system-ui;
+}
+
+/* Optional: A nice subtle background gradient */
+body {
+  @apply bg-[var(--color-brand-dark)] text-white antialiased;
+}
