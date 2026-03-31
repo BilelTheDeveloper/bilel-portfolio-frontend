@@ -1,16 +1,17 @@
+// client/src/components/ProtectedRoute.jsx
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import axios from 'axios';
+import CONFIG from '../api/config'; // Import your config!
 
 const ProtectedRoute = () => {
-  const [isAuth, setIsAuth] = useState(null); // null = checking, true = logged in, false = denied
+  const [isAuth, setIsAuth] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // We call a simple "me" or "status" route on the backend
-        // If the cookie is valid, the backend returns 200 OK
-        await axios.get('http://localhost:5000/api/auth/status', { withCredentials: true });
+        // USE CONFIG.API_URL HERE - NOT LOCALHOST
+        await axios.get(`${CONFIG.API_URL}/auth/status`);
         setIsAuth(true);
       } catch (err) {
         setIsAuth(false);
@@ -19,22 +20,14 @@ const ProtectedRoute = () => {
     checkAuth();
   }, []);
 
-  // --- Loading State: Prevents UI flickering ---
   if (isAuth === null) {
     return (
-      <div className="min-h-screen bg-[#05070a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"></div>
-          <p className="text-[10px] uppercase font-black tracking-[0.3em] text-slate-500 animate-pulse">
-            Verifying Credentials...
-          </p>
-        </div>
+      <div className="min-h-screen bg-[#05070a] flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-brand-primary"></div>
       </div>
     );
   }
 
-  // If authenticated, render the children (the Dashboard)
-  // If not, redirect to the login page
   return isAuth ? <Outlet /> : <Navigate to="/admin/login" replace />;
 };
 
