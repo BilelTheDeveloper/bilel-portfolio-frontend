@@ -1,17 +1,10 @@
 /**
- * 🛠️ DYNAMIC API CONFIGURATION
- * This file automatically detects if you are in Development (Localhost)
- * or Production (Render/Vercel) so you don't have to change URLs manually.
+ * 🛠️ SECURE API CONFIGURATION
+ * This file pulls the URL directly from your .env file.
  */
 
-// 1. Check if the app is running in Production mode (Vercel)
-const isProduction = import.meta.env.PROD;
-
-// 2. Define the base URL based on the environment
-// Fallback to Localhost if not in production
-const BASE_URL = isProduction 
-  ? 'https://bilel-portfolio-backend.onrender.com/api' 
-  : 'http://localhost:5000/api';
+// 1. Pull the URL from the VITE_API_URL variable you just set
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const CONFIG = {
   API_URL: BASE_URL,
