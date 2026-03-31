@@ -1,10 +1,7 @@
-/**
- * 🛠️ SECURE API CONFIGURATION
- * This file pulls the URL directly from your .env file.
- */
+// client/src/api/config.js
 
-// 1. Pull the URL from the VITE_API_URL variable you just set
-const BASE_URL = import.meta.env.VITE_API_URL;
+// This is the "Nuclear" option. No variables, just the hard link.
+const BASE_URL = 'https://bilel-portfolio-backend.onrender.com/api';
 
 export const CONFIG = {
   API_URL: BASE_URL,
@@ -14,7 +11,6 @@ export const CONFIG = {
     FEEDBACK: `${BASE_URL}/feedback`,
     MESSAGES: `${BASE_URL}/messages`,
   },
-  VERSION: '1.0.0',
 };
 
 export default CONFIG;
