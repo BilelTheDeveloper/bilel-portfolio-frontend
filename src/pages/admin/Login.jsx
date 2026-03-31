@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import CONFIG from '../../api/config'; // Importing your dynamic config
+import CONFIG from '../../api/config';
 
 export default function Login() {
+  // We hardcode your admin email so you only have to type the password
+  const ADMIN_EMAIL = "bilel.thedeveloper@gmail.com";
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,23 +18,18 @@ export default function Login() {
     setError('');
 
     try {
-      // 1. Pointing to your Production Render API
+      // Sending both email and password to match your new Access model
       const res = await axios.post(`${CONFIG.API_URL}/auth/login`, 
-        { password },
-        { withCredentials: true } // Allows the secure cookie to be saved
+        { 
+          email: ADMIN_EMAIL, 
+          password 
+        },
+        { withCredentials: true } // Crucial for saving the admin_token cookie
       );
 
       if (res.data.success) {
-        // 2. CRITICAL UPDATE: Store user data for the AdminGuard in App.jsx
-        // We manually set the email here since your backend only checks the password
-        const userData = {
-          email: "bilel.thedeveloper@gmail.com",
-          token: res.data.token // If your backend returns a token string
-        };
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-
-        // 3. Redirect to Dashboard on success
+        // We no longer need to manually set localStorage['user'] 
+        // because AdminGuard now checks the backend directly.
         navigate('/admin');
       }
     } catch (err) {
@@ -56,18 +53,27 @@ export default function Login() {
           <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
             BILEL<span className="text-brand-primary">.ADMIN</span>
           </h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em]">Identity Verification Required</p>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em]">
+            Identity Verification Required
+          </p>
         </div>
 
         <form 
           onSubmit={handleLogin}
           className="bg-white/5 border border-white/10 p-10 rounded-[2.5rem] backdrop-blur-xl shadow-2xl space-y-6"
         >
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-black tracking-widest text-slate-500 ml-2">Access Key</label>
+          <div className="space-y-2 text-center">
+            <p className="text-[10px] text-brand-primary font-bold uppercase tracking-widest mb-4">
+              Logging in as: <span className="text-white">{ADMIN_EMAIL}</span>
+            </p>
+            
+            <label className="text-[10px] uppercase font-black tracking-widest text-slate-500 ml-2 block">
+              Access Key
+            </label>
             <input 
               type="password" 
               required
+              autoFocus
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"

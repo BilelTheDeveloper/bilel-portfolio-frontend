@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import CONFIG from './api/config'; // Ensure this points to your config
 
 // --- Components ---
 import Navbar from './components/Navbar';
@@ -19,15 +20,41 @@ axios.defaults.withCredentials = true;
 
 /**
  * AdminGuard: 
- * Extra security layer. Even if the user is "logged in", 
- * if their email isn't yours, they get kicked to Home.
+ * VERIFIED SECURITY LAYER.
+ * Calls the backend to check if the session is valid and 
+ * confirms the email belongs to the admin.
  */
 const AdminGuard = ({ children }) => {
-  // Assuming you store user info in localStorage after a successful login
-  const user = JSON.parse(localStorage.getItem('user')); 
+  const [authState, setAuthState] = useState({ loading: true, authorized: false });
   const ALLOWED_EMAIL = "bilel.thedeveloper@gmail.com";
 
-  if (!user || user.email !== ALLOWED_EMAIL) {
+  useEffect(() => {
+    const verifyAdmin = async () => {
+      try {
+        const res = await axios.get(`${CONFIG.API_URL}/auth/status`);
+        
+        // Check if the backend confirms admin status and the email matches
+        if (res.data.success && res.data.user?.email === ALLOWED_EMAIL) {
+          setAuthState({ loading: false, authorized: true });
+        } else {
+          setAuthState({ loading: false, authorized: false });
+        }
+      } catch (err) {
+        setAuthState({ loading: false, authorized: false });
+      }
+    };
+    verifyAdmin();
+  }, []);
+
+  if (authState.loading) {
+    return (
+      <div className="min-h-screen bg-[#05070a] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!authState.authorized) {
     console.warn("Unauthorized admin access attempt blocked.");
     return <Navigate to="/" replace />;
   }
@@ -52,7 +79,7 @@ const App = () => {
         {/* --- 1. ADMIN LOGIN --- */}
         <Route path="/admin/login" element={<Login />} />
 
-        {/* --- 2. PROTECTED & EMAIL-GATED ADMIN ROUTES --- */}
+        {/* --- 2. PROTECTED & DATABASE-VERIFIED ADMIN ROUTES --- */}
         <Route element={<ProtectedRoute />}>
           <Route 
             path="/admin/*" 
