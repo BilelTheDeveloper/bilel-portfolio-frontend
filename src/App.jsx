@@ -41,6 +41,7 @@ const App = () => {
 
         {/* --- 2. SECURE ADMIN ZONE --- */}
         {/* Everything inside this ProtectedRoute requires a valid JWT cookie from the backend */}
+        {/* The /* allows the AdminDashboard's internal switch router to handle sub-tabs */}
         <Route element={<ProtectedRoute />}>
           <Route path="/admin/*" element={<AdminDashboard />} />
         </Route>
@@ -49,7 +50,7 @@ const App = () => {
         <Route
           path="*"
           element={
-            <div className="min-h-screen  text-white font-sans selection:bg-brand-primary selection:text-white bg-[#060e25]">
+            <div className="min-h-screen text-white font-sans selection:bg-brand-primary selection:text-white bg-[#060e25]">
               <Navbar />
               <main className="animate-in fade-in duration-500">
                 <Routes>

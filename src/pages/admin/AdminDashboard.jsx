@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import AddProject from './AddProject'; // Import the new component
 import { motion, AnimatePresence } from 'framer-motion';
+
+// --- Components ---
+import Sidebar from './Sidebar';
+import AddProject from './AddProject'; 
+import AdminFeedback from './AdminFeedback'; // Import the new Management page
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('stats');
 
-  // Unified Content Router
+  /**
+   * Unified Content Router
+   * Switches between views based on Sidebar selection
+   */
   const renderContent = () => {
     switch (activeTab) {
       case 'stats':
@@ -35,18 +41,15 @@ export default function AdminDashboard() {
         return <AddProject />;
 
       case 'feedback':
-        return (
-          <div className="p-20 bg-white/2 border border-white/5 border-dashed rounded-[3rem] text-center">
-            <div className="text-4xl mb-4">💬</div>
-            <h3 className="text-xl font-bold text-slate-400 uppercase tracking-widest">Feedback Management</h3>
-            <p className="text-slate-600 mt-2">Connecting to database...</p>
-          </div>
-        );
+        // Now renders the real management logic instead of the placeholder
+        return <AdminFeedback />;
 
       default:
         return (
           <div className="p-20 bg-white/2 border border-white/5 rounded-[3rem] text-center">
-            <p className="text-slate-500 italic">The <span className="text-brand-primary font-bold">{activeTab}</span> module is currently under construction.</p>
+            <p className="text-slate-500 italic">
+              The <span className="text-brand-primary font-bold">{activeTab}</span> module is currently under construction.
+            </p>
           </div>
         );
     }

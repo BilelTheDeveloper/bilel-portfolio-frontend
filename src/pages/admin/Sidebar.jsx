@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 
 const menuItems = [
   { id: 'stats', label: 'Dashboard', icon: '📊' },
-  { id: 'add-project', label: 'Add Project', icon: '🚀' }, // New Update here
+  { id: 'add-project', label: 'Add Project', icon: '🚀' }, 
   { id: 'services', label: 'Manage Services', icon: '🛠️' },
-  { id: 'feedback', label: 'Client Reviews', icon: '💬' },
+  { id: 'feedback', label: 'Client Reviews', icon: '💬' }, // This matches the ID for AdminFeedback
   { id: 'messages', label: 'Inquiries', icon: '✉️' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
