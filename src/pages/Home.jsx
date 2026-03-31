@@ -1,14 +1,18 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ContactModal from '../components/ContactModal'; // Ensure this path is correct
 import ServiceModal  from '../components/ServiceModal';
 import LatestWork from '../components/LatestWork';
+import axios from 'axios';
+import CONFIG from '../api/config';
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const techStack = ['React 19', 'Tailwind 4.0', 'Node.js', 'MongoDB', 'Cloudinary'];
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [latestProject, setLatestProject] = useState(null);
+  const [loading, setLoading] = useState(true);
   const services = [
     {
       title: "Web Development",
@@ -27,10 +31,28 @@ export default function Home() {
       tools: ["Meta Business Suite", "Ads Manager", "Google Analytics", "Hotjar"]
     }
   ];
+
 const handleOpenService = (service) => {
     setSelectedService(service);
     setIsServiceModalOpen(true);
   };  
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await axios.get(CONFIG.ENDPOINTS.PROJECTS);
+        if (res.data.success && res.data.data.length > 0) {
+          // Get the very first item (the most recent one from your DB)
+          setLatestProject(res.data.data[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching latest preview:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLatest();
+  }, []);
   return (
     <div className="animate-in fade-in duration-700">
       {/* HERO SECTION - REWORKED WITH IMAGE */}
@@ -249,86 +271,106 @@ const handleOpenService = (service) => {
 </section>
 
       {/* WHY BILEL.DEV SECTION */}
-      <section className="py-24 bg-slate-900/30 border-y border-white/5 relative overflow-hidden">
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-brand-primary/5 blur-[100px] -z-10"></div>
+<section className="py-24 bg-slate-900/30 border-y border-white/5 relative overflow-hidden">
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-brand-primary/5 blur-[100px] -z-10"></div>
 
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* LEFT SIDE: THE TEXT CONTENT (KEPT EXACTLY THE SAME) */}
+          <div>
+            <h2 className="text-4xl md:text-5xl font-black mb-8 text-white leading-tight text-left">
+              Why <span className="text-brand-primary">Bilel.dev?</span>
+            </h2>
             
-            {/* LEFT SIDE: THE TEXT CONTENT */}
-            <div>
-              <h2 className="text-4xl md:text-5xl font-black mb-8 text-white leading-tight text-left">
-                Why <span className="text-brand-primary">Bilel.dev?</span>
-              </h2>
-              
-              <div className="space-y-6">
-                {[
-                  { 
-                    id: "01", 
-                    title: "Performance First", 
-                    desc: "I build lightweight, lightning-fast sites. Speed is the #1 factor for keeping visitors on your page." 
-                  },
-                  { 
-                    id: "02", 
-                    title: "Conversion Focused", 
-                    desc: "A beautiful site is useless if it doesn't sell. I integrate marketing psychology into every pixel." 
-                  },
-                  { 
-                    id: "03", 
-                    title: "Next-Gen Tech", 
-                    desc: "Built with React 19 and Tailwind 4.0. Your project stays fast, secure, and modern for years." 
-                  }
-                ].map((item) => (
-                  <div key={item.id} className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-brand-primary/30 transition-all duration-500">
-                    <div className="flex gap-6 items-start">
-                      <span className="text-2xl font-black text-brand-primary/40 group-hover:text-brand-primary transition-colors">
-                        {item.id}
-                      </span>
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                        <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
-                      </div>
+            <div className="space-y-6">
+              {[
+                { 
+                  id: "01", 
+                  title: "Performance First", 
+                  desc: "I build lightweight, lightning-fast sites. Speed is the #1 factor for keeping visitors on your page." 
+                },
+                { 
+                  id: "02", 
+                  title: "Conversion Focused", 
+                  desc: "A beautiful site is useless if it doesn't sell. I integrate marketing psychology into every pixel." 
+                },
+                { 
+                  id: "03", 
+                  title: "Next-Gen Tech", 
+                  desc: "Built with React 19 and Tailwind 4.0. Your project stays fast, secure, and modern for years." 
+                }
+              ].map((item) => (
+                <div key={item.id} className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-brand-primary/30 transition-all duration-500">
+                  <div className="flex gap-6 items-start">
+                    <span className="text-2xl font-black text-brand-primary/40 group-hover:text-brand-primary transition-colors">
+                      {item.id}
+                    </span>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* RIGHT SIDE: THE "LAST WORK" CARD PREVIEW */}
-            <div className="relative group">
-              <div className="absolute -top-10 left-0 text-xs font-bold uppercase tracking-[0.3em] text-brand-primary/60 mb-4">
-                Latest Project Preview
-              </div>
-              
-              <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-slate-800 shadow-2xl group-hover:translate-y-[-10px] transition-all duration-500">
-                <div className="aspect-video w-full overflow-hidden">
-                  <img 
-                    src="Almadora-Web.png" 
-                    alt="Latest Work" 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
                 </div>
-                
-                <div className="p-8">
-                  <div className="flex gap-2 mb-4">
-                    <span className="px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-[10px] font-bold text-brand-primary uppercase">E-Commerce</span>
-                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase">React 19</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Premium Brand Store</h3>
-                  <p className="text-slate-400 text-sm mb-6">
-                    A full-scale online shop featuring custom checkout logic and Meta pixel integration.
-                  </p>
-                  <Link to="/projects" className="inline-flex items-center gap-2 text-white font-bold group/link">
-                    View Full Project 
-                    <span className="text-brand-primary group-hover/link:translate-x-2 transition-transform">→</span>
-                  </Link>
-                </div>
-              </div>
-              <div className="absolute -bottom-6 -right-6 w-full h-full border border-brand-primary/10 rounded-3xl -z-10 group-hover:rotate-2 transition-transform duration-500"></div>
+              ))}
             </div>
           </div>
+
+          {/* RIGHT SIDE: THE "LAST WORK" CARD PREVIEW (NOW DYNAMIC) */}
+          <div className="relative group">
+            <div className="absolute -top-10 left-0 text-xs font-bold uppercase tracking-[0.3em] text-brand-primary/60 mb-4">
+              Latest Project Preview
+            </div>
+            
+            <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-slate-800 shadow-2xl group-hover:translate-y-[-10px] transition-all duration-500 min-h-[400px]">
+              {loading ? (
+                // Simple Skeleton while loading
+                <div className="w-full h-full bg-slate-800 animate-pulse flex items-center justify-center text-slate-600 text-xs font-black uppercase tracking-widest">
+                  Fetching Latest Work...
+                </div>
+              ) : latestProject ? (
+                <>
+                  <div className="aspect-video w-full overflow-hidden bg-slate-900">
+                    <img 
+                      src={latestProject.image} 
+                      alt={latestProject.title} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  </div>
+                  
+                  <div className="p-8">
+                    <div className="flex gap-2 mb-4">
+                      <span className="px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-[10px] font-bold text-brand-primary uppercase">
+                        {latestProject.category || "Development"}
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase">
+                        {latestProject.tags?.[0] || "React 19"}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-3">
+                      {latestProject.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-6 line-clamp-2">
+                      {latestProject.description}
+                    </p>
+                    <Link to="/projects" className="inline-flex items-center gap-2 text-white font-bold group/link">
+                      View Full Project 
+                      <span className="text-brand-primary group-hover/link:translate-x-2 transition-transform">→</span>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                // Fallback if no project is found
+                <div className="p-8 text-center text-slate-500 italic">No projects found.</div>
+              )}
+            </div>
+            {/* The decorative border background */}
+            <div className="absolute -bottom-6 -right-6 w-full h-full border border-brand-primary/10 rounded-3xl -z-10 group-hover:rotate-2 transition-transform duration-500"></div>
+          </div>
+
         </div>
-      </section>
+      </div>
+    </section>
       <LatestWork />
       {/* FEEDBACK SECTION - 3 CARD GRID */}
       <section className="py-24 px-6 bg-slate-900/50 border-t border-white/5 relative overflow-hidden">
