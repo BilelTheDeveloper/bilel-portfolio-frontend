@@ -13,6 +13,7 @@ export default function Home() {
   const [selectedService, setSelectedService] = useState(null);
   const [latestProject, setLatestProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [feedbacks, setFeedbacks] = useState([]);
   const services = [
     {
       title: "Web Development",
@@ -52,6 +53,21 @@ const handleOpenService = (service) => {
       }
     };
     fetchLatest();
+  }, []);
+
+  useEffect(() => {
+    const fetchHomeFeedback = async () => {
+      try {
+        const res = await axios.get(`${CONFIG.API_URL}/feedback`);
+        // We only take the first 3 approved feedbacks for the home section
+        setFeedbacks(res.data.data.slice(0, 3));
+      } catch (err) {
+        console.error("Error fetching home feedback:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHomeFeedback();
   }, []);
   return (
     <div className="animate-in fade-in duration-700">
@@ -373,84 +389,83 @@ const handleOpenService = (service) => {
     </section>
       <LatestWork />
       {/* FEEDBACK SECTION - 3 CARD GRID */}
-      <section className="py-24 px-6/ border-t border-white/5 relative overflow-hidden bg-[#060e25]">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 blur-[120px] -z-10"></div>
+      <section className="py-24 px-6 border-t border-white/5 relative overflow-hidden bg-[#060e25]">
+      {/* Background Decorations */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 blur-[120px] -z-10"></div>
 
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">Client <span className="text-brand-primary">Success.</span></h2>
-            <p className="text-slate-400 max-w-lg mx-auto italic">"Real stories from partners who scaled their business with Bilel.dev"</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Jenkins",
-                email: "s.jenkins@techcorp.com",
-                text: "Bilel transformed our landing page into a high-converting machine. The MERN integration is flawless and the speed is incredible.",
-                rating: 5,
-                icon: "👤"
-              },
-              {
-                name: "Marco Rossi",
-                email: "marco@growthads.io",
-                text: "The combination of expert development and Meta Ads knowledge is rare. Our ROI increased by 40% in the first month alone.",
-                rating: 5,
-                icon: "👔"
-              },
-              {
-                name: "Elena Petrov",
-                email: "elena@vogue-retail.ru",
-                text: "Fast, professional, and understood our brand vision perfectly. The new site handled our peak traffic without a single glitch.",
-                rating: 5,
-                icon: "👗"
-              }
-            ].map((review, idx) => (
-              <div 
-                key={idx} 
-                className="p-8 rounded-3xl bg-white/2 border border-white/10 hover:border-brand-primary/40 transition-all duration-500 group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-xl grayscale group-hover:grayscale-0 transition-all">
-                      {review.icon}
-                    </div>
-                    <div className="text-left">
-                      <h4 className="font-bold text-white text-lg">{review.name}</h4>
-                      <p className="text-brand-primary/60 text-xs font-medium lowercase tracking-tight">{review.email}</p>
-                    </div>
-                  </div>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-8 italic">
-                    "{review.text}"
-                  </p>
-                </div>
-                <div className="flex gap-1 border-t border-white/5 pt-6">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <svg 
-                      key={i} 
-                      className="w-4 h-4 text-brand-primary" 
-                      fill="currentColor" 
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-16 text-center">
-            <Link 
-              to="/feedback" 
-              className="inline-flex items-center gap-3 px-8 py-3 rounded-full border border-white/10 text-white font-bold hover:bg-brand-primary hover:border-brand-primary transition-all group"
-            >
-              Read All Success Stories
-              <span className="group-hover:translate-x-2 transition-transform">→</span>
-            </Link>
-          </div>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">
+            Client <span className="text-brand-primary">Success.</span>
+          </h2>
+          <p className="text-slate-400 max-w-lg mx-auto italic">
+            "Real stories from partners who scaled their business with Bilel.dev"
+          </p>
         </div>
-      </section>
+
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8">
+            {feedbacks.length > 0 ? (
+              feedbacks.map((review, idx) => (
+                <div 
+                  key={review._id || idx} 
+                  className="p-8 rounded-3xl bg-white/2 border border-white/10 hover:border-brand-primary/40 transition-all duration-500 group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-xl font-bold text-brand-primary grayscale group-hover:grayscale-0 transition-all uppercase">
+                        {/* Use first letter of name as icon if no image is provided */}
+                        {review.name.charAt(0)}
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-bold text-white text-lg">{review.name}</h4>
+                        <p className="text-brand-primary/60 text-[10px] font-black uppercase tracking-widest">
+                          {review.role}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-slate-400 text-sm leading-relaxed mb-8 italic">
+                      "{review.message}"
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-1 border-t border-white/5 pt-6">
+                    {[...Array(5)].map((_, i) => (
+                      <svg 
+                        key={i} 
+                        className={`w-4 h-4 ${i < review.rating ? 'text-brand-primary' : 'text-slate-700'}`} 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center text-slate-500 py-10 bg-white/2 rounded-3xl border border-dashed border-white/10">
+                New success stories coming soon...
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="mt-16 text-center">
+          <Link 
+            to="/feedback" 
+            className="inline-flex items-center gap-3 px-8 py-3 rounded-full border border-white/10 text-white font-bold hover:bg-brand-primary hover:border-brand-primary transition-all group"
+          >
+            Read All Success Stories
+            <span className="group-hover:translate-x-2 transition-transform">→</span>
+          </Link>
+        </div>
+      </div>
+    </section>
 
       {/* Modal Integration at the very bottom */}
       <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
