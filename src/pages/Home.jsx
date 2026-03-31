@@ -56,7 +56,7 @@ const handleOpenService = (service) => {
   return (
     <div className="animate-in fade-in duration-700">
       {/* HERO SECTION - REWORKED WITH IMAGE */}
-      <section className="relative pt-16 pb-20 md:pt-28 md:pb-32 px-6 overflow-hidden">
+      <section className="relative pt-16 pb-20 md:pt-28 md:pb-32 px-6 overflow-hidden bg-[#060e25]">
         {/* ADVANCED BACKGROUND DETAILS - KEPT EXACTLY THE SAME */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
@@ -271,7 +271,7 @@ const handleOpenService = (service) => {
 </section>
 
       {/* WHY BILEL.DEV SECTION */}
-<section className="py-24 bg-slate-900/30 border-y border-white/5 relative overflow-hidden">
+<section className="py-24  border-y border-white/5 relative overflow-hidden bg-[#060e25]">
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-brand-primary/5 blur-[100px] -z-10"></div>
 
       <div className="max-w-7xl mx-auto px-6">
@@ -373,7 +373,7 @@ const handleOpenService = (service) => {
     </section>
       <LatestWork />
       {/* FEEDBACK SECTION - 3 CARD GRID */}
-      <section className="py-24 px-6 bg-slate-900/50 border-t border-white/5 relative overflow-hidden">
+      <section className="py-24 px-6/ border-t border-white/5 relative overflow-hidden bg-[#060e25]">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/5 blur-[120px] -z-10"></div>
 
         <div className="max-w-7xl mx-auto">

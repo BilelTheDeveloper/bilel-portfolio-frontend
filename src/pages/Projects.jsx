@@ -29,7 +29,7 @@ export default function Projects() {
   }, []);
 
   return (
-    <div className="py-20 px-6 max-w-7xl mx-auto min-h-screen">
+    <div className="py-20 px-6 max-w-7xl mx-auto min-h-screen ">
       {/* Header Area */}
       <div className="mb-16">
         <motion.h2 
