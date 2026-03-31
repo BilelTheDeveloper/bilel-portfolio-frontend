@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import CONFIG from './api/config'; // Ensure this points to your config
+import CONFIG from './api/config';
 
 // --- Components ---
 import Navbar from './components/Navbar';
@@ -16,49 +16,65 @@ import Feedback from './pages/Feedback';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Login from './pages/admin/Login';
 
+// CRITICAL: Tells axios to always send the secure cookie with every request
 axios.defaults.withCredentials = true;
 
 /**
  * AdminGuard: 
- * VERIFIED SECURITY LAYER.
- * Calls the backend to check if the session is valid and 
- * confirms the email belongs to the admin.
+ * THE GATEKEEPER.
+ * This component asks the backend: "Is the person holding this cookie allowed in?"
  */
 const AdminGuard = ({ children }) => {
   const [authState, setAuthState] = useState({ loading: true, authorized: false });
   const ALLOWED_EMAIL = "bilel.thedeveloper@gmail.com";
 
   useEffect(() => {
+    let isMounted = true; // Prevents memory leaks if component unmounts
+
     const verifyAdmin = async () => {
       try {
+        // We hit the /status endpoint which uses our 'protect' middleware
         const res = await axios.get(`${CONFIG.API_URL}/auth/status`);
         
-        // Check if the backend confirms admin status and the email matches
-        if (res.data.success && res.data.user?.email === ALLOWED_EMAIL) {
-          setAuthState({ loading: false, authorized: true });
-        } else {
-          setAuthState({ loading: false, authorized: false });
+        if (isMounted) {
+          if (res.data.success && res.data.user?.email === ALLOWED_EMAIL) {
+            setAuthState({ loading: false, authorized: true });
+          } else {
+            setAuthState({ loading: false, authorized: false });
+          }
         }
       } catch (err) {
-        setAuthState({ loading: false, authorized: false });
+        if (isMounted) {
+          setAuthState({ loading: false, authorized: false });
+        }
       }
     };
+
     verifyAdmin();
+    return () => { isMounted = false; };
   }, []);
 
+  // 1. Show a professional loader while checking the database
   if (authState.loading) {
     return (
       <div className="min-h-screen bg-[#05070a] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"></div>
+          <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest animate-pulse">
+            Verifying Identity...
+          </p>
+        </div>
       </div>
     );
   }
 
+  // 2. If not authorized, kick them back to the Home page
   if (!authState.authorized) {
-    console.warn("Unauthorized admin access attempt blocked.");
+    console.warn("🔐 Access Denied: Returning to safe zone.");
     return <Navigate to="/" replace />;
   }
 
+  // 3. If authorized, show the Admin Dashboard
   return children;
 };
 
@@ -76,10 +92,10 @@ const App = () => {
       <ScrollToTop />
       
       <Routes>
-        {/* --- 1. ADMIN LOGIN --- */}
+        {/* --- 1. ADMIN LOGIN (Publicly accessible) --- */}
         <Route path="/admin/login" element={<Login />} />
 
-        {/* --- 2. PROTECTED & DATABASE-VERIFIED ADMIN ROUTES --- */}
+        {/* --- 2. ADMIN PANEL (Triple-Locked Security) --- */}
         <Route element={<ProtectedRoute />}>
           <Route 
             path="/admin/*" 
@@ -91,7 +107,7 @@ const App = () => {
           />
         </Route>
 
-        {/* --- 3. PUBLIC ROUTES --- */}
+        {/* --- 3. PUBLIC WEBSITE STRUCTURE --- */}
         <Route
           path="*"
           element={
