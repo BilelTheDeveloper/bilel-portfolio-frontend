@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // --- Components ---
 import Navbar from './components/Navbar';
-import ProtectedRoute from './components/ProtectedRoute'; // The file we fixed with CONFIG.API_URL
+import ProtectedRoute from './components/ProtectedRoute'; // Secure Auth Wrapper
 
 // --- Pages ---
 import Home from './pages/Home';
@@ -16,6 +16,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import Login from './pages/admin/Login';
 
 // CRITICAL: Global Axios setting to allow Secure Cookies (JWT)
+// This ensures your admin inquiries and feedback management can authenticate with the backend
 axios.defaults.withCredentials = true;
 
 /**
@@ -41,7 +42,11 @@ const App = () => {
 
         {/* --- 2. SECURE ADMIN ZONE --- */}
         {/* Everything inside this ProtectedRoute requires a valid JWT cookie from the backend */}
-        {/* The /* allows the AdminDashboard's internal switch router to handle sub-tabs */}
+        {/* The /* allows the AdminDashboard's internal switch router to handle sub-tabs like:
+            - Projects
+            - Client Reviews
+            - Inquiries (NEW)
+        */}
         <Route element={<ProtectedRoute />}>
           <Route path="/admin/*" element={<AdminDashboard />} />
         </Route>

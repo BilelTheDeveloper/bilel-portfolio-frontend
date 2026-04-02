@@ -5,8 +5,8 @@ const menuItems = [
   { id: 'stats', label: 'Dashboard', icon: '📊' },
   { id: 'add-project', label: 'Add Project', icon: '🚀' }, 
   { id: 'services', label: 'Manage Services', icon: '🛠️' },
-  { id: 'feedback', label: 'Client Reviews', icon: '💬' }, // This matches the ID for AdminFeedback
-  { id: 'messages', label: 'Inquiries', icon: '✉️' },
+  { id: 'feedback', label: 'Client Reviews', icon: '💬' }, 
+  { id: 'messages', label: 'Inquiries', icon: '✉️' }, // This connects to AdminMessages
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -41,6 +41,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
               <motion.div 
                 layoutId="activeGlow"
                 className="absolute inset-0 bg-white/10 rounded-2xl blur-md -z-10"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
 
@@ -56,6 +57,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
               <motion.div 
                 layoutId="activePill"
                 className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
           </button>
@@ -66,7 +68,10 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       <div className="pt-6 border-t border-white/5 space-y-4">
         <div className="px-4 py-3 bg-white/5 rounded-2xl border border-white/5">
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">System Status</p>
-          <p className="text-[10px] text-brand-primary font-black uppercase">Database Connected</p>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
+            <p className="text-[10px] text-brand-primary font-black uppercase">Database Connected</p>
+          </div>
         </div>
         
         <button className="w-full flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-2xl transition-all font-bold text-sm group">

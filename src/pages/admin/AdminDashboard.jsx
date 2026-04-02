@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 // --- Components ---
 import Sidebar from './Sidebar';
 import AddProject from './AddProject'; 
-import AdminFeedback from './AdminFeedback'; // Import the new Management page
+import AdminFeedback from './AdminFeedback'; 
+import AdminMessages from './AdminMessages'; // NEW: Import the Inquiry management page
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('stats');
@@ -41,8 +42,10 @@ export default function AdminDashboard() {
         return <AddProject />;
 
       case 'feedback':
-        // Now renders the real management logic instead of the placeholder
         return <AdminFeedback />;
+
+      case 'messages': // NEW: This case handles the Inquiries tab
+        return <AdminMessages />;
 
       default:
         return (
