@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { Analytics } from '@vercel/analytics/react';
 
 // --- Components ---
 import Navbar from './components/Navbar';
@@ -35,6 +36,7 @@ const App = () => {
   return (
     <Router>
       <ScrollToTop />
+      <Analytics />
       
       <Routes>
         {/* --- 1. ADMIN LOGIN --- */}
