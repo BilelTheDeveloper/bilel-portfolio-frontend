@@ -58,7 +58,7 @@ export default function Login() {
 
       if (res.data.success) {
         localStorage.removeItem('gate_passed');
-        navigate('/admin');
+        navigate('/a12d3m234434n');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid Credentials');
