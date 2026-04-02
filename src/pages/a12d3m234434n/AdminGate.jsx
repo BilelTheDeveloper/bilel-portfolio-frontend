@@ -14,7 +14,7 @@ export default function AdminGate() {
     if (key === MASTER_KEY) {
       // Set a temporary session pass
       localStorage.setItem('gate_passed', 'true');
-      navigate('/admin/login');
+      navigate('/a12d3m234434n/login');
     } else {
       navigate('/');
     }
