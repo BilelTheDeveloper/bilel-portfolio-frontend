@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // --- 🛡️ THE GATE KEEPER CHECK ---
+  useEffect(() => {
+    const hasPass = localStorage.getItem('gate_passed');
+    if (!hasPass) {
+      // If they didn't come through the /admin/gate?key=... URL, kick them to home
+      window.location.href = "/";
+    }
+  }, []);
 
   // Step 1: Verify if the email is on the "Access List"
   const handleCheckAccess = async (e) => {
@@ -25,6 +34,8 @@ export default function Login() {
       }
     } catch (err) {
       // If unauthorized, kick them to the home page immediately
+      // We also clear the gate pass to be safe
+      localStorage.removeItem('gate_passed');
       navigate('/');
     } finally {
       setLoading(false);
@@ -44,6 +55,8 @@ export default function Login() {
       );
 
       if (res.data.success) {
+        // Clear the temporary gate pass once officially logged in via JWT
+        localStorage.removeItem('gate_passed');
         navigate('/admin');
       }
     } catch (err) {

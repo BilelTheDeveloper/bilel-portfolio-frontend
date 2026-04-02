@@ -14,6 +14,7 @@ import Feedback from './pages/Feedback';
 // --- Admin Pages ---
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Login from './pages/admin/Login';
+import AdminGate from './pages/admin/AdminGate'; // <--- NEWLY ADDED
 
 // CRITICAL: Global Axios setting to allow Secure Cookies (JWT)
 // This ensures your admin inquiries and feedback management can authenticate with the backend
@@ -37,7 +38,8 @@ const App = () => {
       
       <Routes>
         {/* --- 1. ADMIN LOGIN --- */}
-        {/* Publicly accessible for the developer to log in */}
+        {/* The Gate handles the secret URL entry before the Login page */}
+        <Route path="/admin/gate" element={<AdminGate />} /> 
         <Route path="/admin/login" element={<Login />} />
 
         {/* --- 2. SECURE ADMIN ZONE --- */}
