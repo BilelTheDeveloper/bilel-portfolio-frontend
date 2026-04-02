@@ -9,20 +9,36 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [step, setStep] = useState(1); // 1: Check Email, 2: Enter Password
   const [loading, setLoading] = useState(false);
-  const [gateLoading, setGateLoading] = useState(true); // 🛡️ NEW: Stealth check state
+  const [gateLoading, setGateLoading] = useState(true); // 🛡️ Stealth check state
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // --- 🛡️ THE GATE KEEPER CHECK ---
+  // --- 🛡️ THE REAL GATE KEEPER CHECK (SERVER-SIDE) ---
   useEffect(() => {
-    const hasPass = localStorage.getItem('gate_passed');
-    if (!hasPass) {
-      // No secret pass? Immediate kick-out
-      window.location.href = "/";
-    } else {
-      // Pass confirmed, show the UI
-      setGateLoading(false);
-    }
+    const verifyServerGate = async () => {
+      try {
+        /**
+         * We ask the backend if the HttpOnly 'gate_pass' cookie is present.
+         * JavaScript cannot read the cookie, so we MUST ask the server.
+         */
+        const res = await axios.get(`${CONFIG.API_URL}/auth/gate-status`, { 
+          withCredentials: true 
+        });
+
+        if (res.data.success) {
+          // Cookie is valid! Show the login UI
+          setGateLoading(false);
+        }
+      } catch (err) {
+        /** * No cookie found or expired. 
+         * We clear any old localStorage hacks just to be clean and kick them out.
+         */
+        localStorage.removeItem('gate_passed'); 
+        window.location.href = "/";
+      }
+    };
+
+    verifyServerGate();
   }, []);
 
   // Step 1: Verify if the email is on the "Access List"
@@ -32,13 +48,24 @@ export default function Login() {
     setError('');
 
     try {
-      const res = await axios.post(`${CONFIG.API_URL}/auth/check-access`, { email });
+      /**
+       * 🛡️ SECURED: Added { withCredentials: true }
+       * The server now checks for the Gate Cookie before allowing this call.
+       */
+      const res = await axios.post(`${CONFIG.API_URL}/auth/check-access`, 
+        { email },
+        { withCredentials: true } 
+      );
+      
       if (res.data.success) {
         setStep(2); // Move to password step
       }
     } catch (err) {
-      localStorage.removeItem('gate_passed');
-      navigate('/');
+      // If the gate cookie was tampered with or missing, redirect home
+      setError(err.response?.data?.message || 'Access Denied');
+      if (err.response?.status === 401) {
+        navigate('/');
+      }
     } finally {
       setLoading(false);
     }
@@ -51,13 +78,17 @@ export default function Login() {
     setError('');
 
     try {
+      /**
+       * 🛡️ SECURED: Added { withCredentials: true }
+       */
       const res = await axios.post(`${CONFIG.API_URL}/auth/login`, 
         { email, password },
         { withCredentials: true } 
       );
 
       if (res.data.success) {
-        localStorage.removeItem('gate_passed');
+        // Success! Dashboard logic
+        localStorage.removeItem('gate_passed'); // Full cleanup
         navigate('/a12d3m234434n');
       }
     } catch (err) {
@@ -67,7 +98,7 @@ export default function Login() {
     }
   };
 
-  // 🛡️ STEALTH MODE: Show fake 404 while checking for the gate pass
+  // 🛡️ STEALTH MODE: Show fake 404 while the server verifies the gate cookie
   if (gateLoading) {
     return (
       <div className="min-h-screen bg-[#05070a] flex items-center justify-center text-slate-800">
