@@ -12,12 +12,12 @@ import Projects from './pages/Projects';
 import Feedback from './pages/Feedback';
 
 // --- Admin Pages ---
+// These now point to your new "Secret Folder" name
 import AdminDashboard from './pages/a12d3m234434n/AdminDashboard';
 import Login from './pages/a12d3m234434n/Login';
-import AdminGate from './pages/a12d3m234434n/AdminGate'; // <--- NEWLY ADDED
+import AdminGate from './pages/a12d3m234434n/AdminGate'; 
 
-// CRITICAL: Global Axios setting to allow Secure Cookies (JWT)
-// This ensures your admin inquiries and feedback management can authenticate with the backend
+// Global Axios setting to allow Secure Cookies (JWT)
 axios.defaults.withCredentials = true;
 
 /**
@@ -38,17 +38,10 @@ const App = () => {
       
       <Routes>
         {/* --- 1. ADMIN LOGIN --- */}
-        {/* The Gate handles the secret URL entry before the Login page */}
         <Route path="/a12d3m234434n/gate" element={<AdminGate />} /> 
         <Route path="/a12d3m234434n/login" element={<Login />} />
 
         {/* --- 2. SECURE ADMIN ZONE --- */}
-        {/* Everything inside this ProtectedRoute requires a valid JWT cookie from the backend */}
-        {/* The /* allows the AdminDashboard's internal switch router to handle sub-tabs like:
-            - Projects
-            - Client Reviews
-            - Inquiries (NEW)
-        */}
         <Route element={<ProtectedRoute />}>
           <Route path="/a12d3m234434n/*" element={<AdminDashboard />} />
         </Route>
@@ -64,7 +57,6 @@ const App = () => {
                   <Route path="/" element={<Home />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/feedback" element={<Feedback />} />
-                  {/* Catch-all: Redirect unknown public routes to home */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>
@@ -80,7 +72,7 @@ const App = () => {
                     </div>
                     
                     <a 
-                      href="/admin/login" 
+                      href="/a12d3m234434n/login" 
                       className="text-[10px] uppercase font-black tracking-[0.2em] border border-white/10 px-3 py-1.5 rounded-lg hover:bg-white/5 hover:border-brand-primary/40 transition-all text-slate-600 hover:text-brand-primary"
                     >
                       Admin Access
