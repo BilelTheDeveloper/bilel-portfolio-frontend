@@ -9,6 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [step, setStep] = useState(1); // 1: Check Email, 2: Enter Password
   const [loading, setLoading] = useState(false);
+  const [gateLoading, setGateLoading] = useState(true); // 🛡️ NEW: Stealth check state
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -16,8 +17,11 @@ export default function Login() {
   useEffect(() => {
     const hasPass = localStorage.getItem('gate_passed');
     if (!hasPass) {
-      // If they didn't come through the /admin/gate?key=... URL, kick them to home
+      // No secret pass? Immediate kick-out
       window.location.href = "/";
+    } else {
+      // Pass confirmed, show the UI
+      setGateLoading(false);
     }
   }, []);
 
@@ -33,8 +37,6 @@ export default function Login() {
         setStep(2); // Move to password step
       }
     } catch (err) {
-      // If unauthorized, kick them to the home page immediately
-      // We also clear the gate pass to be safe
       localStorage.removeItem('gate_passed');
       navigate('/');
     } finally {
@@ -55,7 +57,6 @@ export default function Login() {
       );
 
       if (res.data.success) {
-        // Clear the temporary gate pass once officially logged in via JWT
         localStorage.removeItem('gate_passed');
         navigate('/admin');
       }
@@ -65,6 +66,17 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // 🛡️ STEALTH MODE: Show fake 404 while checking for the gate pass
+  if (gateLoading) {
+    return (
+      <div className="min-h-screen bg-[#05070a] flex items-center justify-center text-slate-800">
+        <p className="text-[10px] uppercase tracking-[0.5em] font-black opacity-20">
+          404 - Request Not Found
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6 relative overflow-hidden">
