@@ -6,7 +6,7 @@ export default function AdminGate() {
   const navigate = useNavigate();
   
   // CHANGE THIS TO YOUR SECRET KEY
-  const MASTER_KEY = "BILEL_PRO_ALPHA_99"; 
+  const MASTER_KEY = "BILE2342423L_PR423424234O_A23432424LPHA_990603447936784724826496382462846238423"; 
 
   useEffect(() => {
     const key = searchParams.get('key');
