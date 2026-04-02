@@ -40,7 +40,6 @@ export default function AdminDashboard() {
 
       case 'add-project':
         return <AddProject />;
-
       case 'feedback':
         return <AdminFeedback />;
 

@@ -37,7 +37,6 @@ const handleOpenService = (service) => {
     setSelectedService(service);
     setIsServiceModalOpen(true);
   };  
-
   useEffect(() => {
     const fetchLatest = async () => {
       try {
