@@ -12,17 +12,20 @@ export default function AddProject() {
     category: 'Web Development',
     description: '',
     link: '',
-    image: null
+    image: null,
+    // --- 🚀 NEW DETAILED FIELDS ---
+    features: '',    // Will be converted to array on submit
+    challenges: '',
+    solutions: '',
+    duration: ''
   });
 
-  // FIX: Ghost placeholder removed. Initial state is null.
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setProject({ ...project, image: file });
-      // FIX: Creates a temporary local URL for the preview
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
@@ -38,6 +41,14 @@ export default function AddProject() {
     formData.append('description', project.description);
     formData.append('link', project.link);
     formData.append('image', project.image);
+    
+    // --- 🚀 APPENDING NEW FIELDS ---
+    // Convert comma-separated string to array
+    const featuresArray = project.features.split(',').map(f => f.trim()).filter(f => f !== '');
+    formData.append('features', JSON.stringify(featuresArray)); 
+    formData.append('challenges', project.challenges);
+    formData.append('solutions', project.solutions);
+    formData.append('duration', project.duration);
 
     try {
       const response = await axios.post(CONFIG.ENDPOINTS.PROJECTS, formData, {
@@ -48,8 +59,18 @@ export default function AddProject() {
       if (response.data.success) {
         setStatus({ type: 'success', msg: 'Project deployed to portfolio successfully!' });
         
-        // UPDATE: Reset form AND preview after success
-        setProject({ title: '', category: 'Web Development', description: '', link: '', image: null });
+        // Reset form AND preview after success
+        setProject({ 
+          title: '', 
+          category: 'Web Development', 
+          description: '', 
+          link: '', 
+          image: null,
+          features: '',
+          challenges: '',
+          solutions: '',
+          duration: ''
+        });
         setPreviewUrl(null);
       }
     } catch (err) {
@@ -110,31 +131,79 @@ export default function AddProject() {
                 <option>Web Development</option>
                 <option>Meta Ads Case Study</option>
                 <option>UI/UX Design</option>
+                <option>Digital Marketing</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Live URL</label>
+              <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Duration</label>
               <input 
-                required
                 type="text" 
-                value={project.link}
+                value={project.duration}
                 className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none"
-                placeholder="https://..."
-                onChange={(e) => setProject({...project, link: e.target.value})}
+                placeholder="e.g. 3 Months"
+                onChange={(e) => setProject({...project, duration: e.target.value})}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Description</label>
+            <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Live URL</label>
+            <input 
+              required
+              type="text" 
+              value={project.link}
+              className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none"
+              placeholder="https://..."
+              onChange={(e) => setProject({...project, link: e.target.value})}
+            />
+          </div>
+
+          {/* NEW: FEATURES INPUT */}
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Key Features (Comma separated)</label>
+            <input 
+              type="text" 
+              value={project.features}
+              className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none"
+              placeholder="e.g. Auth, Cloudinary, Framer Motion"
+              onChange={(e) => setProject({...project, features: e.target.value})}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Short Description</label>
             <textarea 
               required
-              rows="3"
+              rows="2"
               value={project.description}
               className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none resize-none"
-              placeholder="Short impact summary..."
+              placeholder="Short impact summary for card..."
               onChange={(e) => setProject({...project, description: e.target.value})}
             />
+          </div>
+
+          {/* NEW: CHALLENGES & SOLUTIONS */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Main Challenge</label>
+              <textarea 
+                rows="3"
+                value={project.challenges}
+                className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none resize-none"
+                placeholder="What was difficult?"
+                onChange={(e) => setProject({...project, challenges: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 ml-2">Your Solution</label>
+              <textarea 
+                rows="3"
+                value={project.solutions}
+                className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none resize-none"
+                placeholder="How did you solve it?"
+                onChange={(e) => setProject({...project, solutions: e.target.value})}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -197,6 +266,9 @@ export default function AddProject() {
                 <span className="px-3 py-1 bg-brand-primary/10 text-brand-primary text-[10px] font-black uppercase tracking-widest rounded-lg border border-brand-primary/20">
                   {project.category}
                 </span>
+                {project.duration && (
+                  <span className="text-slate-500 text-[10px] font-bold uppercase">{project.duration}</span>
+                )}
               </div>
               <h3 className="text-2xl font-bold text-white mb-3">
                 {project.title || "Project Title"}
