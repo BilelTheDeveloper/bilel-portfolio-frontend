@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'; // Secure Auth Wrapper
 import Home from './pages/Home';
 import Projects from './pages/Projects';
 import Feedback from './pages/Feedback';
+import ProjectDetails from './pages/ProjectDetails';
 
 // --- Admin Pages ---
 // These now point to your new "Secret Folder" name
@@ -57,6 +58,7 @@ const App = () => {
                   <Route path="/" element={<Home />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/feedback" element={<Feedback />} />
+                  <Route path="/project/:id" element={<ProjectDetails />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </main>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import CONFIG from '../api/config';
 
 export default function Projects() {
@@ -29,7 +30,7 @@ export default function Projects() {
   }, []);
 
   return (
-    <div className="py-20 px-6 max-w-7xl mx-auto min-h-screen ">
+    <div className="py-20 px-6 max-w-7xl mx-auto min-h-screen">
       {/* Header Area */}
       <div className="mb-16">
         <motion.h2 
@@ -76,7 +77,7 @@ export default function Projects() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="group relative bg-slate-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/50 transition-all duration-300 shadow-2xl"
+              className="group relative bg-slate-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/50 transition-all duration-300 shadow-2xl flex flex-col"
             >
               {/* Image Container */}
               <div className="aspect-video overflow-hidden relative">
@@ -91,10 +92,19 @@ export default function Projects() {
                     {project.category}
                   </span>
                 </div>
+                
+                {/* 🚀 NEW: Duration Badge */}
+                {project.duration && (
+                   <div className="absolute top-4 right-4">
+                    <span className="text-[9px] uppercase tracking-tighter font-bold px-2 py-1 rounded bg-white/10 backdrop-blur-sm text-slate-300 border border-white/5">
+                      {project.duration}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Content */}
-              <div className="p-8">
+              <div className="p-8 flex-grow flex flex-col">
                 <div className="flex flex-wrap gap-2 mb-4">
                   {project.tags && project.tags.length > 0 ? (
                     project.tags.map(t => (
@@ -117,15 +127,25 @@ export default function Projects() {
                   {project.description}
                 </p>
 
-                <div className="flex items-center justify-between mt-auto">
+                {/* 🚀 UPDATED: Dual Link Action */}
+                <div className="flex flex-col gap-4 mt-auto">
+                  {/* Primary: Learn More / Case Study */}
+                  <Link 
+                    to={`/project/${project._id}`}
+                    className="w-full py-3 bg-white/5 hover:bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-xl text-center border border-white/10 hover:border-brand-primary transition-all duration-300"
+                  >
+                    View Case Study
+                  </Link>
+
+                  {/* Secondary: Direct Live Link */}
                   <a 
                     href={project.link} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="text-sm font-bold flex items-center gap-2 text-white hover:text-brand-primary transition-all group/btn"
+                    className="text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 text-slate-500 hover:text-white transition-all group/btn"
                   >
-                    Launch Project 
-                    <span className="group-hover/btn:translate-x-2 transition-transform duration-300 text-brand-primary">→</span>
+                    Launch Live Demo 
+                    <span className="group-hover/btn:translate-x-1 transition-transform duration-300 text-brand-primary">→</span>
                   </a>
                 </div>
               </div>
