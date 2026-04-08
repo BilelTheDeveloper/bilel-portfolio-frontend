@@ -131,14 +131,14 @@ const handleOpenService = (service) => {
               {/* --- FLOATING STAT CARDS --- */}
               <div className="absolute -top-4 -left-8 md:-left-12 z-30 animate-bounce [animation-duration:3s]">
                 <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 p-3 md:p-4 rounded-2xl shadow-2xl">
-                  <p className="text-brand-primary text-xl md:text-2xl font-black">+12</p>
+                  <p className="text-brand-primary text-xl md:text-2xl font-black">+4</p>
                   <p className="text-white text-[10px] uppercase font-bold tracking-tighter">Success Projects</p>
                 </div>
               </div>
 
               <div className="absolute top-1/2 -right-10 md:-right-16 z-30 animate-bounce [animation-duration:4s]">
                 <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 p-3 md:p-4 rounded-2xl shadow-2xl">
-                  <p className="text-blue-400 text-xl md:text-2xl font-black">+5</p>
+                  <p className="text-blue-400 text-xl md:text-2xl font-black">+3</p>
                   <p className="text-white text-[10px] uppercase font-bold tracking-tighter">Marketing Scales</p>
                 </div>
               </div>
