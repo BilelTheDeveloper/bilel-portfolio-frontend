@@ -4,7 +4,7 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { Link } from 'react-router-dom';
 import CONFIG from '../api/config';
 
-/* ─── INLINE STYLES ─────────────────────────────────── */
+
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
