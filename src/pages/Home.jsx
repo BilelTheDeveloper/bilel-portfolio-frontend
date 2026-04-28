@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import ContactModal from '../components/ContactModal';
@@ -118,6 +117,64 @@ const styles = `
     border-color: rgba(59,130,246,0.5);
     box-shadow: 0 20px 60px rgba(59,130,246,0.12);
   }
+
+  /* ── SECURITY CARD SPECIAL ── */
+  .security-card {
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .security-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(59,130,246,0.04) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .security-card:hover::before { opacity: 1; }
+  .security-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    border-color: rgba(16,185,129,0.45) !important;
+    box-shadow: 0 20px 60px rgba(16,185,129,0.10);
+  }
+
+  /* ── SECURITY BADGE PULSE ── */
+  .sec-badge-pulse {
+    animation: secPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes secPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  }
+
+  /* ── ATTACK LOG ITEM ── */
+  .attack-log-item {
+    animation: logSlide 0.5s ease forwards;
+    opacity: 0;
+  }
+  .attack-log-item:nth-child(1) { animation-delay: 0.1s; }
+  .attack-log-item:nth-child(2) { animation-delay: 0.2s; }
+  .attack-log-item:nth-child(3) { animation-delay: 0.3s; }
+  .attack-log-item:nth-child(4) { animation-delay: 0.4s; }
+  .attack-log-item:nth-child(5) { animation-delay: 0.5s; }
+  @keyframes logSlide {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── TERMINAL BLINK ── */
+  .terminal-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 14px;
+    background: #10b981;
+    margin-left: 3px;
+    vertical-align: middle;
+    animation: termBlink 1s step-end infinite;
+  }
+  @keyframes termBlink { 50% { opacity: 0; } }
  
   /* ── STAT CARD FLOAT ── */
   .float-card {
@@ -187,6 +244,17 @@ const styles = `
     height: 1px;
     width: 100%;
   }
+
+  /* ── FULL-WIDTH SERVICE CARD ── */
+  .service-card-full {
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: pointer;
+  }
+  .service-card-full:hover {
+    transform: translateY(-5px);
+    border-color: rgba(59,130,246,0.5) !important;
+    box-shadow: 0 20px 60px rgba(59,130,246,0.1);
+  }
 `;
  
 /* ─── 3D SCENE (THREE.JS) ─────────────────────────────── */
@@ -199,7 +267,6 @@ function Hero3D({ canvasRef }) {
     let mouseX = 0, mouseY = 0;
  
     const load = async () => {
-      // Dynamically load Three.js from CDN
       if (!window.THREE) {
         await new Promise((res, rej) => {
           const s = document.createElement('script');
@@ -218,17 +285,14 @@ function Hero3D({ canvasRef }) {
       const canvas = canvasRef.current;
       if (!canvas) return;
  
-      // Renderer
       renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(canvas.clientWidth, canvas.clientHeight);
  
-      // Scene & Camera
       scene = new T.Scene();
       camera = new T.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
       camera.position.z = 5;
  
-      // ── CENTRAL SPHERE (wireframe globe) ──
       const sphereGeo = new T.SphereGeometry(1.4, 32, 32);
       const sphereMat = new T.MeshBasicMaterial({
         color: 0x3b82f6,
@@ -239,7 +303,6 @@ function Hero3D({ canvasRef }) {
       sphere = new T.Mesh(sphereGeo, sphereMat);
       scene.add(sphere);
  
-      // ── INNER GLOW SPHERE ──
       const innerGeo = new T.SphereGeometry(1.1, 24, 24);
       const innerMat = new T.MeshBasicMaterial({
         color: 0x1d4ed8,
@@ -250,7 +313,6 @@ function Hero3D({ canvasRef }) {
       const inner = new T.Mesh(innerGeo, innerMat);
       scene.add(inner);
  
-      // ── ORBIT RINGS ──
       const makeRing = (rx, ry, rz, opacity, color = 0x3b82f6) => {
         const geo = new T.TorusGeometry(2.2, 0.008, 6, 120);
         const mat = new T.MeshBasicMaterial({ color, transparent: true, opacity });
@@ -265,7 +327,6 @@ function Hero3D({ canvasRef }) {
       ring2 = makeRing(0.3, 1.1, 0.6, 0.3, 0x60a5fa);
       ring3 = makeRing(0.8, 0.2, 1.4, 0.2, 0x93c5fd);
  
-      // ── PARTICLE FIELD ──
       const pCount = 600;
       const pGeo = new T.BufferGeometry();
       const positions = new Float32Array(pCount * 3);
@@ -282,14 +343,12 @@ function Hero3D({ canvasRef }) {
       particles = new T.Points(pGeo, pMat);
       scene.add(particles);
  
-      // Mouse
       const onMouse = (e) => {
         mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
         mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
       };
       window.addEventListener('mousemove', onMouse);
  
-      // Resize
       const onResize = () => {
         if (!canvas) return;
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -298,7 +357,6 @@ function Hero3D({ canvasRef }) {
       };
       window.addEventListener('resize', onResize);
  
-      // Animate
       const clock = new T.Clock();
       const animate = () => {
         animId = requestAnimationFrame(animate);
@@ -316,7 +374,6 @@ function Hero3D({ canvasRef }) {
         particles.rotation.y = t * 0.02;
         particles.rotation.x = t * 0.008;
  
-        // Parallax from mouse
         scene.rotation.x += (mouseY * 0.15 - scene.rotation.x) * 0.04;
         scene.rotation.y += (mouseX * 0.15 - scene.rotation.y) * 0.04;
  
@@ -432,7 +489,6 @@ export default function Home() {
     'React 19', 'Next.js', 'Node.js', 'Express', 'MongoDB',
     'Tailwind 4.0', 'TypeScript', 'REST API', 'JWT Auth', 'Cloudinary',
     'Vercel', 'AWS', 'Git', 'Docker',
-    // duplicated for infinite scroll
     'React 19', 'Next.js', 'Node.js', 'Express', 'MongoDB',
     'Tailwind 4.0', 'TypeScript', 'REST API', 'JWT Auth', 'Cloudinary',
     'Vercel', 'AWS', 'Git', 'Docker',
@@ -440,23 +496,43 @@ export default function Home() {
  
   const services = [
     {
-      title: 'Full-Stack Web Apps',
-      desc: 'Custom web applications built from scratch — fast, secure and ready to scale.',
+      title: 'Full-Stack Web Applications',
+      desc: 'End-to-end web applications engineered for performance, maintainability, and scale — from database architecture to pixel-perfect UI.',
       longDesc:
-        'I build complete web applications from the first line of code to the live server. Front end, back end, database — everything works together perfectly. Your users get a smooth, fast experience on any device.',
+        'I architect and deliver complete web applications using the MERN stack. Every layer is designed with purpose: a MongoDB schema optimised for query performance, a Node.js/Express API built around RESTful principles with proper error handling and validation, and a React frontend that is fast, accessible, and intuitive. I own the full delivery — no hand-offs, no gaps.',
       icon: '🖥️',
-      features: ['Custom UI Design', 'REST API', 'Database Setup', 'SEO Ready'],
-      tools: ['React 19', 'Node.js', 'MongoDB', 'Tailwind 4.0', 'Express'],
+      features: ['Custom React 19 UI', 'REST API Design', 'MongoDB Schema Architecture', 'SEO & Core Web Vitals', 'CI/CD Deployment'],
+      tools: ['React 19', 'Node.js', 'MongoDB', 'Tailwind 4.0', 'Express', 'Vercel'],
+      highlight: 'Full ownership from schema to deploy',
     },
     {
-      title: 'Secure & Fast Sites',
-      desc: 'Websites protected against attacks, optimised for speed and built to last.',
+      title: 'Security-First Backend Engineering',
+      desc: 'Production-grade backends with enterprise authentication, hardened APIs, and layered defences — not bolted on after the fact.',
       longDesc:
-        'Security is not optional. I add authentication, input validation, rate limiting and HTTPS best practices to every project. Your data stays safe and your site loads in under 2 seconds.',
+        'Security is architecture, not a feature. I implement multi-layered auth systems: JWT access/refresh token rotation, Redis-backed JTI blacklisting, device fingerprinting, CSRF double-submit protection, and account-level brute force lockout. Every write endpoint has Joi schema validation. Every route has the right RBAC guard. Your users and their data are protected by design.',
       icon: '🔒',
-      features: ['JWT Auth', 'Data Encryption', 'Performance Audit', 'HTTPS Best Practices'],
-      tools: ['Helmet.js', 'JWT', 'Bcrypt', 'Nginx', 'Cloudflare'],
+      features: ['JWT + Redis Token Blacklist', 'Device Fingerprinting', 'CSRF Protection', 'Rate Limiting + Lockout', 'Joi Schema Validation'],
+      tools: ['Helmet.js', 'JWT', 'Bcrypt', 'Redis', 'Joi', 'Cloudflare'],
+      highlight: 'Penetration-tested & hardened',
     },
+  ];
+
+  // ── NEW: Security proof card data ──
+  const attackLogs = [
+    { type: 'BLOCKED', label: 'SQL / NoSQL Injection', detail: 'Sanitizer stripped operator payload', color: '#10b981' },
+    { type: 'BLOCKED', label: 'Brute Force Login', detail: 'Account locked after 5 attempts via Redis', color: '#10b981' },
+    { type: 'BLOCKED', label: 'JWT Algorithm Confusion', detail: 'HS256 allowlist rejected forged RS256 token', color: '#10b981' },
+    { type: 'BLOCKED', label: 'CSRF Forged Request', detail: 'Double-submit token mismatch → 403', color: '#10b981' },
+    { type: 'BLOCKED', label: 'Session Replay Attack', detail: 'JTI blacklist confirmed token revoked', color: '#10b981' },
+  ];
+
+  const securityChecks = [
+    { label: 'HttpOnly Cookie Auth', passed: true },
+    { label: 'Redis JTI Blacklist', passed: true },
+    { label: 'Device Fingerprinting', passed: true },
+    { label: 'CSRF Double-Submit', passed: true },
+    { label: 'Refresh Token Hashing', passed: true },
+    { label: 'Admin RBAC Guard', passed: true },
   ];
  
   const whyItems = [
@@ -523,15 +599,11 @@ export default function Home() {
         className="relative min-h-screen flex items-center overflow-hidden"
         style={{ background: 'var(--dark-bg)' }}
       >
-        {/* Grid texture */}
         <div className="absolute inset-0 grid-texture -z-10" />
-        {/* Noise */}
         <div className="absolute inset-0 noise-overlay" />
-        {/* Glow blobs */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/15 blur-[140px] rounded-full -z-10" />
         <div className="absolute bottom-0 right-1/3 w-72 h-72 bg-cyan-500/8 blur-[100px] rounded-full -z-10" />
  
-        {/* THREE.JS CANVAS */}
         <canvas
           ref={canvasRef}
           id="hero-canvas"
@@ -540,9 +612,7 @@ export default function Home() {
         <Hero3D canvasRef={canvasRef} />
  
         <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-16 items-center relative z-10 w-full">
-          {/* TEXT */}
           <div className="order-2 md:order-1">
-            {/* Badge */}
             <div className="reveal inline-flex items-center gap-2 px-4 py-1.5 rounded-full border mb-8 text-xs font-bold uppercase tracking-widest"
               style={{ background: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.25)', color: '#60a5fa' }}>
               <span className="relative flex h-2 w-2">
@@ -552,7 +622,6 @@ export default function Home() {
               Open for New Projects
             </div>
  
-            {/* Heading */}
             <h1 className="reveal d100 text-5xl lg:text-[4.5rem] font-black leading-[1.05] mb-4 tracking-tight text-white">
               I Build Websites<br />
               That Actually<br />
@@ -561,19 +630,16 @@ export default function Home() {
               </span>
             </h1>
  
-            {/* Typewriter */}
             <div className="reveal d200 text-2xl font-bold mb-6" style={{ color: '#93c5fd', fontFamily: 'Syne, sans-serif', minHeight: '2rem' }}>
               <span className="cursor-blink">{typeText}</span>
             </div>
  
-            {/* Sub text */}
             <p className="reveal d300 text-slate-400 text-lg leading-relaxed mb-10 max-w-lg">
               Hi, I am <span className="text-white font-semibold">Bilel</span> — a Full-Stack Web Developer.
               I build websites and web apps using the <span className="text-white font-semibold">MERN Stack</span>.
               Clean code. Fast delivery. Real results.
             </p>
  
-            {/* Buttons */}
             <div className="reveal d400 flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -592,7 +658,6 @@ export default function Home() {
               </Link>
             </div>
  
-            {/* Quick stats */}
             <div className="reveal d500 flex gap-8 mt-12 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               {[
                 { num: '4+', label: 'Projects Done' },
@@ -607,19 +672,15 @@ export default function Home() {
             </div>
           </div>
  
-          {/* 3D VISUAL SIDE */}
           <div className="order-1 md:order-2 flex justify-center items-center relative">
             <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-[22rem] lg:h-[22rem]">
-              {/* Rotating ring */}
               <div className="ring-spin absolute inset-[-20px] border-2 border-dashed rounded-full"
                 style={{ borderColor: 'rgba(59,130,246,0.3)' }} />
               <div className="ring-spin absolute inset-[-40px] border rounded-full"
                 style={{ borderColor: 'rgba(59,130,246,0.12)', animationDirection: 'reverse', animationDuration: '30s' }} />
-              {/* Pulse ring */}
               <div className="absolute inset-[-8px] rounded-full animate-pulse"
                 style={{ border: '1px solid rgba(59,130,246,0.2)' }} />
  
-              {/* Profile image */}
               <div className="absolute inset-4 rounded-full overflow-hidden border-4"
                 style={{ borderColor: 'var(--dark-bg)', boxShadow: '0 0 60px -8px rgba(59,130,246,0.6)' }}>
                 <img
@@ -629,7 +690,6 @@ export default function Home() {
                 />
               </div>
  
-              {/* Floating stat cards */}
               <div className="float-card absolute -top-6 -left-8 md:-left-14 z-30">
                 <div className="glass px-4 py-3 rounded-2xl shadow-2xl">
                   <p className="stat-number text-xl font-black" style={{ color: '#3b82f6' }}>+4</p>
@@ -656,7 +716,6 @@ export default function Home() {
           </div>
         </div>
  
-        {/* Bottom glow line */}
         <div className="absolute bottom-0 left-0 right-0 glow-line opacity-40" />
       </section>
  
@@ -675,11 +734,12 @@ export default function Home() {
       </div>
  
       {/* ══════════════════════════════════════════════════
-          SERVICES SECTION
+          SERVICES SECTION  (UPDATED)
       ══════════════════════════════════════════════════ */}
       <section className="py-28 px-6 relative overflow-hidden border-b" style={{ background: 'var(--dark-mid)', borderColor: 'rgba(255,255,255,0.05)' }}>
         <div className="absolute top-1/4 -left-20 w-96 h-96 blur-[140px] -z-10 animate-pulse" style={{ background: 'rgba(59,130,246,0.08)' }} />
         <div className="absolute bottom-1/4 -right-20 w-96 h-96 blur-[140px] -z-10 animate-pulse" style={{ background: 'rgba(56,189,248,0.06)' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] blur-[180px] -z-10" style={{ background: 'rgba(16,185,129,0.03)' }} />
  
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -690,12 +750,12 @@ export default function Home() {
             </h2>
             <div className="reveal d200 w-20 h-1.5 rounded-full mb-6" style={{ background: '#3b82f6' }} />
             <p className="reveal d300 text-slate-400 text-lg max-w-xl">
-              I focus on one thing and do it very well — building web applications that are fast, secure, and easy to use.
+              I focus on one thing and do it very well — building web applications that are fast, secure, and engineered to last.
             </p>
           </div>
  
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* ── TOP TWO SERVICE CARDS ── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             {services.map((s, i) => (
               <div
                 key={s.title}
@@ -704,9 +764,27 @@ export default function Home() {
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div>
-                  <div className="text-5xl mb-8">{s.icon}</div>
-                  <h3 className="text-2xl font-bold text-white mb-4">{s.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-8">{s.desc}</p>
+                  <div className="flex items-start justify-between mb-8">
+                    <div className="text-5xl">{s.icon}</div>
+                    {/* Highlight badge */}
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+                      style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#60a5fa' }}>
+                      {s.highlight}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">{s.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed mb-6">{s.desc}</p>
+
+                  {/* Tools used */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {s.tools.map((t) => (
+                      <span key={t} className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
                   {/* Feature pills */}
                   <div className="flex flex-wrap gap-2 mb-8">
                     {s.features.map((f) => (
@@ -725,7 +803,128 @@ export default function Home() {
               </div>
             ))}
           </div>
- 
+
+          {/* ── SECURITY PROOF CARD (FULL WIDTH) ── */}
+          <div className="reveal d300">
+            <div
+              className="security-card rounded-[2rem] p-10 md:p-12"
+              style={{ background: 'rgba(6,20,12,0.6)', border: '1px solid rgba(16,185,129,0.2)' }}
+            >
+              {/* Card header */}
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
+                <div className="flex items-start gap-5">
+                  <div className="sec-badge-pulse w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                    style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                    🛡️
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-2xl font-bold text-white">Security-Hardened Infrastructure</h3>
+                      <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+                        style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>
+                        Pentest Verified
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">
+                      I conducted real penetration testing on my own production systems — running actual attack vectors to verify every defence layer holds. 
+                      The results below are from live tests against the deployed backend, not theoretical assumptions.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Overall score */}
+                <div className="flex-shrink-0 text-center px-8 py-5 rounded-2xl"
+                  style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                  <p className="text-4xl font-black mb-1" style={{ color: '#10b981', fontFamily: 'Syne, sans-serif' }}>6/6</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Attacks Blocked</p>
+                </div>
+              </div>
+
+              {/* Two-column layout: attack log + checklist */}
+              <div className="grid md:grid-cols-2 gap-8">
+
+                {/* LEFT: Live attack simulation log */}
+                <div>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <p className="text-xs font-black uppercase tracking-[0.25em]" style={{ color: '#10b981' }}>
+                      Penetration Test Log
+                    </p>
+                  </div>
+
+                  {/* Terminal-style container */}
+                  <div className="rounded-2xl overflow-hidden" style={{ background: '#050f0a', border: '1px solid rgba(16,185,129,0.15)' }}>
+                    {/* Terminal title bar */}
+                    <div className="flex items-center gap-2 px-5 py-3" style={{ borderBottom: '1px solid rgba(16,185,129,0.1)', background: 'rgba(16,185,129,0.04)' }}>
+                      <div className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
+                      <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
+                      <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
+                      <span className="ml-3 text-[11px] font-bold" style={{ color: 'rgba(16,185,129,0.5)' }}>security-audit.log</span>
+                    </div>
+
+                    {/* Log entries */}
+                    <div className="p-5 space-y-3">
+                      {attackLogs.map((log, idx) => (
+                        <div key={idx} className="attack-log-item flex items-start gap-3">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded flex-shrink-0 mt-0.5"
+                            style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
+                            {log.type}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-white text-xs font-bold truncate">{log.label}</p>
+                            <p className="text-slate-500 text-[10px] leading-relaxed">{log.detail}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Terminal cursor line */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <span className="text-[11px]" style={{ color: '#10b981' }}>$</span>
+                        <span className="text-[11px]" style={{ color: 'rgba(16,185,129,0.5)' }}>awaiting_next_vector</span>
+                        <span className="terminal-cursor" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT: Security checklist + layers */}
+                <div className="flex flex-col justify-between gap-6">
+
+                  {/* Checklist */}
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.25em] mb-5" style={{ color: '#3b82f6' }}>
+                      Security Layers Active
+                    </p>
+                    <div className="space-y-3">
+                      {securityChecks.map((check, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-2.5 px-4 rounded-xl"
+                          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                          <span className="text-sm font-semibold text-slate-300">{check.label}</span>
+                          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase"
+                            style={{ color: '#10b981' }}>
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Active
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bottom note */}
+                  <div className="p-4 rounded-xl flex items-start gap-3"
+                    style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                    <span className="text-green-400 text-lg flex-shrink-0">ℹ️</span>
+                    <p className="text-slate-400 text-xs leading-relaxed">
+                      Security is not a feature I add at the end — it is part of the architecture from the first commit. 
+                      Every project I deliver includes hardened auth, input validation, and proper access controls.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Skills progress bars */}
           <div className="mt-20 grid md:grid-cols-2 gap-8">
             <div className="reveal reveal-left">
@@ -774,7 +973,6 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
  
-            {/* LEFT */}
             <div>
               <p className="reveal text-xs font-black uppercase tracking-[0.3em] mb-4" style={{ color: '#3b82f6' }}>The Reason</p>
               <h2 className="reveal d100 text-4xl md:text-5xl font-black text-white mb-10 leading-tight">
@@ -809,7 +1007,6 @@ export default function Home() {
               </div>
             </div>
  
-            {/* RIGHT – latest project */}
             <div className="relative group">
               <div className="absolute -top-8 left-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: 'rgba(59,130,246,0.6)' }}>
                 Latest Project
@@ -946,4 +1143,3 @@ export default function Home() {
     </div>
   );
 }
- 
