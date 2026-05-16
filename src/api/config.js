@@ -1,7 +1,5 @@
 // client/src/api/config.js
-
-// This is the "Nuclear" option. No variables, just the hard link.
-const BASE_URL = 'https://bilel-portfolio-backend.onrender.com/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://bilel-portfolio-backend-l652.onrender.com/api';
 
 export const CONFIG = {
   API_URL: BASE_URL,
