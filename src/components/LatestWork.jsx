@@ -55,7 +55,7 @@ export default function LatestWork() {
 
         {error && <p role="status" className="mb-6 text-slate-300">Projects are temporarily unavailable. <Link to="/projects" className="underline">Try the project gallery</Link>.</p>}
         {/* 3-Card Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             // Skeleton Loading State
             [1, 2, 3].map((n) => (

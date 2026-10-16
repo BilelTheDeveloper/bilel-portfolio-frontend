@@ -626,8 +626,8 @@ export default function Home() {
         />
         <Hero3D canvasRef={canvasRef} />
 
-        <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-16 items-center relative z-10 w-full">
-          <div className="order-2 md:order-1">
+        <div className="max-w-7xl mx-auto home-hero-layout px-5 sm:px-6 py-16 sm:py-24 lg:py-28 grid lg:grid-cols-2 gap-14 lg:gap-16 items-center relative z-10 w-full">
+          <div className="order-2 lg:order-1">
             <div className="reveal inline-flex items-center gap-2 px-4 py-1.5 rounded-full border mb-8 text-xs font-bold uppercase tracking-widest"
               style={{ background: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.25)', color: '#60a5fa' }}>
               <span className="relative flex h-2 w-2">
@@ -637,7 +637,7 @@ export default function Home() {
               Open for New Projects
             </div>
 
-            <h1 className="reveal d100 text-5xl lg:text-[4.5rem] font-black leading-[1.05] mb-4 tracking-tight text-white">
+            <h1 className="reveal d100 text-4xl sm:text-5xl xl:text-[4.5rem] font-black leading-[1.05] mb-4 tracking-tight text-white">
               I Build Websites<br />
               That Actually<br />
               <span style={{ background: 'linear-gradient(135deg, #3b82f6, #60a5fa, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -687,8 +687,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="order-1 md:order-2 flex justify-center items-center relative">
-            <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-[22rem] lg:h-[22rem]">
+          <div className="order-1 lg:order-2 flex justify-center items-center relative">
+            <div className="home-portrait relative w-52 h-52 sm:w-64 sm:h-64 xl:w-[22rem] xl:h-[22rem]">
               <div className="ring-spin absolute inset-[-20px] border-2 border-dashed rounded-full"
                 style={{ borderColor: 'rgba(59,130,246,0.3)' }} />
               <div className="ring-spin absolute inset-[-40px] border rounded-full"
@@ -760,7 +760,7 @@ export default function Home() {
           {/* Header */}
           <div className="mb-16">
             <p className="reveal text-xs font-black uppercase tracking-[0.3em] mb-4" style={{ color: '#3b82f6' }}>What I Do</p>
-            <h2 className="reveal d100 text-5xl md:text-6xl font-black text-white tracking-tighter mb-6">
+            <h2 className="reveal d100 text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-6">
               My Services.
             </h2>
             <div className="reveal d200 w-20 h-1.5 rounded-full mb-6" style={{ background: '#3b82f6' }} />
@@ -779,7 +779,7 @@ export default function Home() {
                 aria-label={`Learn more about ${s.title}`}
                 onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleOpenService(s); } }}
                 onClick={() => handleOpenService(s)}
-                className={`reveal d${(i + 1) * 100} service-card p-10 rounded-[2rem] flex flex-col justify-between h-full`}
+                className={`reveal d${(i + 1) * 100} service-card p-6 sm:p-8 lg:p-10 rounded-[2rem] flex flex-col justify-between h-full`}
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div>
@@ -826,7 +826,7 @@ export default function Home() {
           {/* ── SECURITY PROOF CARD (FULL WIDTH) ── */}
           <div className="reveal d300">
             <div
-              className="security-card rounded-[2rem] p-10 md:p-12"
+              className="security-card rounded-[2rem] p-5 sm:p-8 lg:p-12"
               style={{ background: 'rgba(6,20,12,0.6)', border: '1px solid rgba(16,185,129,0.2)' }}
             >
               {/* Card header */}

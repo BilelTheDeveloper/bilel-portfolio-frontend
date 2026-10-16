@@ -527,8 +527,8 @@ export default function ProjectDetails() {
   if (!project) return (
     <>
       <style>{styles}</style>
-      <div className="pd-root min-h-screen flex flex-col items-center justify-center gap-8">
-        <p className="text-6xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+      <div className="pd-root min-h-screen flex flex-col items-center justify-center gap-8 px-5 py-16 text-center">
+        <p className="text-3xl sm:text-5xl lg:text-6xl font-black text-white max-w-3xl" style={{ fontFamily: 'Syne, sans-serif' }}>
           {error ? 'Unable to load project.' : 'Project not found.'}
         </p>
         {error && <p role="alert" className="text-slate-300">{error} <button onClick={() => window.location.reload()} className="underline">Retry</button></p>}
@@ -596,7 +596,7 @@ export default function ProjectDetails() {
       ══════════════════════════════════════════════════ */}
       <Motion.section
         style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-24"
+        className="pd-hero relative z-10 max-w-7xl mx-auto px-5 sm:px-6 pt-10 sm:pt-16 pb-16 sm:pb-24"
       >
         {/* Grid texture layer */}
         <div className="absolute inset-0 pd-grid opacity-40 pointer-events-none" />
@@ -628,7 +628,7 @@ export default function ProjectDetails() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-              className="text-5xl md:text-6xl xl:text-7xl font-black leading-[1.02] tracking-tight mb-8 text-white"
+              className="pd-title text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.02] tracking-tight mb-8 text-white"
             >
               {project.title}
               <span className="block mt-2" style={{
@@ -731,7 +731,7 @@ export default function ProjectDetails() {
               <Motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute -top-5 -right-5 glass px-4 py-3 rounded-2xl shadow-2xl"
+                className="pd-category absolute top-3 right-3 sm:-top-5 sm:-right-3 glass px-4 py-3 rounded-2xl shadow-2xl"
               >
                 <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: '#3b82f6' }}>
                   {project.category || 'Development'}
@@ -743,7 +743,7 @@ export default function ProjectDetails() {
                 <Motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                  className="absolute -bottom-5 -left-5 glass px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2"
+                  className="pd-duration relative mt-3 w-fit sm:absolute sm:-bottom-5 sm:-left-3 glass px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2"
                 >
                   <FiClock size={12} style={{ color: '#60a5fa' }} />
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{project.duration}</p>
@@ -787,7 +787,7 @@ export default function ProjectDetails() {
             { label: 'Case Study', val: 1, suffix: '', icon: <FiCheckCircle size={18} /> },
             { label: 'Project Links', val: project.link ? 1 : 0, suffix: '', icon: <FiShield size={18} /> },
           ].map((st, i) => (
-            <div key={st.label} className="pd-reveal card-hover p-8 text-center relative"
+            <div key={st.label} className="pd-reveal card-hover p-4 sm:p-8 text-center relative"
               style={{ background: 'var(--dark-mid)', transitionDelay: `${i * 0.1}s` }}>
               <div className="flex justify-center mb-4" style={{ color: '#3b82f6' }}>{st.icon}</div>
               <p className="stat-val text-4xl text-white mb-2">
@@ -807,7 +807,7 @@ export default function ProjectDetails() {
 
           {/* ── FEATURES COLUMN ── */}
           <div className="lg:col-span-4">
-            <div className="pd-reveal sticky top-28">
+            <div className="pd-reveal lg:sticky lg:top-28">
               {/* Section label */}
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.25)' }}>
@@ -867,7 +867,7 @@ export default function ProjectDetails() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-              className="relative card-hover rounded-[2rem] p-10 overflow-hidden"
+              className="pd-content-card relative card-hover rounded-[2rem] p-5 sm:p-8 lg:p-10 overflow-hidden"
               style={{ background: 'rgba(239,68,68,0.03)', border: '1px solid rgba(239,68,68,0.1)' }}
             >
               <span className="section-num">01</span>
@@ -893,7 +893,7 @@ export default function ProjectDetails() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.12, ease: [0.23, 1, 0.32, 1] }}
-              className="relative card-hover rounded-[2rem] p-10 overflow-hidden"
+              className="pd-content-card relative card-hover rounded-[2rem] p-5 sm:p-8 lg:p-10 overflow-hidden"
               style={{ background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.18)' }}
             >
               <span className="section-num" style={{ color: 'rgba(59,130,246,0.06)' }}>02</span>
@@ -920,7 +920,7 @@ export default function ProjectDetails() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-                className="relative card-hover rounded-[2rem] p-10"
+                className="pd-content-card relative card-hover rounded-[2rem] p-5 sm:p-8 lg:p-10"
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
               >
                 <span className="section-num" style={{ color: 'rgba(255,255,255,0.02)' }}>03</span>
@@ -969,7 +969,7 @@ export default function ProjectDetails() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="relative rounded-[2.5rem] overflow-hidden p-14 md:p-20 text-center"
+          className="relative rounded-[2.5rem] overflow-hidden p-5 sm:p-10 lg:p-20 text-center"
           style={{
             background: 'linear-gradient(135deg, rgba(9,16,39,0.98), rgba(15,28,61,0.98))',
             border: '1px solid rgba(59,130,246,0.18)',
@@ -989,7 +989,7 @@ export default function ProjectDetails() {
                 Open for New Projects
               </span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-6xl font-black text-white mb-6 leading-tight">
               Like What You<br />
               <span style={{ background: 'linear-gradient(135deg, #3b82f6, #60a5fa, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 See Here?
@@ -1001,14 +1001,14 @@ export default function ProjectDetails() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/"
-                className="glow-btn px-10 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white"
+                className="glow-btn px-5 sm:px-10 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white"
                 style={{ background: '#3b82f6', boxShadow: '0 8px 32px rgba(59,130,246,0.35)' }}
               >
                 Hire Me →
               </Link>
               <Link
                 to="/projects"
-                className="px-10 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white transition-all hover:bg-white/8"
+                className="px-5 sm:px-10 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white transition-all hover:bg-white/8"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
                 More Projects

@@ -5,3 +5,8 @@
 @media(prefers-reduced-motion:reduce){.auth-spin{animation:none}}
 
 .auth-card h2:focus-visible{outline:none!important}
+
+.admin-auth { overflow-wrap:anywhere; }
+.admin-auth :is(.auth-story,.auth-card,.auth-stepper>span) { min-width:0; }
+@media(max-width:850px) { .admin-auth { display:block; } .auth-story { display:none; } .auth-panel { min-height:100dvh; } }
+@media(max-width:639px) { .auth-form input:not([type=checkbox]) { font-size:16px; } .auth-topline { flex-wrap:wrap; } .auth-stepper { gap:6px; } .auth-text-button { min-height:44px; } }

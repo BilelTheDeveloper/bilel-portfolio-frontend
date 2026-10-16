@@ -55,7 +55,7 @@ export default function AdminMessages() {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
         <div>
-          <h2 className="text-4xl font-black text-white tracking-tighter italic">
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter italic">
             Inquiry <span className="text-brand-primary">Control.</span>
           </h2>
           <p className="text-slate-500 text-sm mt-1 font-medium">Manage your incoming leads and business inquiries.</p>
@@ -78,7 +78,7 @@ export default function AdminMessages() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="group relative bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 hover:bg-white/[0.04] hover:border-brand-primary/30 transition-all duration-500"
+                className="group relative bg-white/[0.02] border border-white/10 rounded-[2rem] p-5 sm:p-8 hover:bg-white/[0.04] hover:border-brand-primary/30 transition-all duration-500"
               >
                 <div className="flex flex-col lg:flex-row justify-between gap-6">
                   {/* Left: Sender Info */}
@@ -93,13 +93,13 @@ export default function AdminMessages() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">
+                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">
                        <span className="flex items-center gap-1"><Calendar size={12}/> {new Date(msg.createdAt).toLocaleDateString()}</span>
                        <span className="flex items-center gap-1"><Tag size={12}/> {msg.subject}</span>
                     </div>
 
                     <p className="mb-3 text-xs text-slate-300">Email notification: {msg.notificationStatus === 'sent' ? 'sent' : msg.notificationStatus === 'failed' ? 'delivery failed — inquiry saved here' : msg.notificationStatus ? 'queued for delivery' : 'received before notification tracking'}</p>
-                    <div className="bg-slate-950/40 border border-white/5 p-6 rounded-2xl relative">
+                    <div className="bg-slate-950/40 border border-white/5 p-4 sm:p-6 rounded-2xl relative">
                       <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">
                         {msg.message}
                       </p>

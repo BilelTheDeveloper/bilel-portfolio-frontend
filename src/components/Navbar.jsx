@@ -248,7 +248,7 @@ function ResumeModal({ isOpen, onClose }) {
       <div className="resume-modal-card nav-root" onClick={(e) => e.stopPropagation()}>
 
         {/* ── TOP STRIP ── */}
-        <div className="relative overflow-hidden rounded-t-[2rem] p-10 pb-8"
+        <div className="relative overflow-hidden rounded-t-[2rem] p-5 sm:p-10 pb-6 sm:pb-8"
           style={{ background: 'linear-gradient(135deg, #060e25 0%, #091836 60%, #0c1f45 100%)' }}>
           <div className="absolute inset-0 noise-sm" />
           <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-[80px]"
@@ -262,10 +262,10 @@ function ResumeModal({ isOpen, onClose }) {
           </button>
 
           {/* Avatar + name */}
-          <div className="flex items-center gap-6 relative z-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 relative z-10">
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl overflow-hidden border-2" style={{ borderColor: 'rgba(59,130,246,0.4)', boxShadow: '0 0 24px rgba(59,130,246,0.3)' }}>
-                <img src="BilelTheDev.webp" alt="Bilel" className="w-full h-full object-cover" />
+                <img src="/BilelTheDev.webp" alt="Bilel" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 flex items-center justify-center"
                 style={{ background: '#060e25', borderColor: '#060e25' }}>
@@ -283,10 +283,10 @@ function ResumeModal({ isOpen, onClose }) {
           </div>
 
           {/* Stats row */}
-          <div className="flex gap-8 mt-8 pt-6 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="grid grid-cols-3 gap-2 sm:gap-8 mt-6 sm:mt-8 pt-6 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             {[['4+', 'Projects'], ['MERN', 'Stack'], ['2+', 'Yrs Exp']].map(([num, label]) => (
               <div key={label}>
-                <p className="syne text-2xl font-black text-white">{num}</p>
+                <p className="syne text-lg sm:text-2xl font-black text-white">{num}</p>
                 <p className="text-slate-500 text-[10px] uppercase tracking-wider font-bold">{label}</p>
               </div>
             ))}
@@ -294,7 +294,7 @@ function ResumeModal({ isOpen, onClose }) {
         </div>
 
         {/* ── BODY ── */}
-        <div className="p-8 space-y-8">
+        <div className="p-5 sm:p-8 space-y-8">
 
           {/* About */}
           <div>
@@ -454,7 +454,7 @@ export default function Navbar() {
         {/* Scroll progress bar */}
         <div className="scroll-progress" style={{ width: `${scrollPct}%` }} />
 
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between relative">
 
           {/* ── LOGO ── */}
           <Link to="/" className="flex items-center gap-3 group z-10">
@@ -470,7 +470,7 @@ export default function Navbar() {
           </Link>
 
           {/* ── DESKTOP NAV ── */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -495,7 +495,7 @@ export default function Navbar() {
           </nav>
 
           {/* ── CTA BUTTONS ── */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             {/* Resume */}
             <button
               onClick={() => setIsResumeOpen(true)}
@@ -522,7 +522,7 @@ export default function Navbar() {
 
           {/* ── MOBILE HAMBURGER ── */}
           <button
-            className="md:hidden flex flex-col gap-1.5 p-2 rounded-xl z-10"
+            className="lg:hidden flex flex-col gap-1.5 p-2 rounded-xl z-10"
             style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
@@ -539,9 +539,9 @@ export default function Navbar() {
         <div
           id="mobile-navigation"
           inert={!menuOpen}
-          className="md:hidden overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          className="lg:hidden overflow-y-auto transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
           style={{
-            maxHeight: menuOpen ? '320px' : '0',
+            maxHeight: menuOpen ? 'min(340px, calc(100dvh - 140px))' : '0',
             borderTop: menuOpen ? '1px solid rgba(255,255,255,0.05)' : 'none',
             background: 'rgba(6,14,37,0.98)',
           }}
@@ -588,7 +588,7 @@ export default function Navbar() {
       {/* ══════════════════════════════════════════
           MOBILE BOTTOM NAV
       ══════════════════════════════════════════ */}
-      <nav className="nav-root md:hidden fixed bottom-0 left-0 z-50 w-full mobile-nav-bg px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+      <nav className="nav-root lg:hidden fixed bottom-0 left-0 z-50 w-full mobile-nav-bg px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-around max-w-sm mx-auto">
           {navLinks.map((link) => (
             <Link
@@ -597,7 +597,7 @@ export default function Navbar() {
               className={`mobile-nav-item flex flex-col items-center gap-1 min-w-[4rem] ${isActive(link.path) ? 'active' : ''}`}
             >
               <div
-                className="mobile-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
+                className="mobile-icon-wrap w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300"
                 style={{
                   border: `1px solid ${isActive(link.path) ? 'rgba(59,130,246,0.3)' : 'transparent'}`,
                   background: isActive(link.path) ? 'rgba(59,130,246,0.1)' : 'transparent',

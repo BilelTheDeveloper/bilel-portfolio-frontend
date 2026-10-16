@@ -52,7 +52,7 @@ export default function Feedback() {
 
 
   return (
-    <div className="min-h-screen py-24 px-6 relative overflow-hidden">
+    <div className="feedback-root min-h-screen py-12 sm:py-20 lg:py-24 px-5 sm:px-6 relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
         <div className="absolute top-24 left-10 w-72 h-72 bg-brand-primary/10 blur-[120px] rounded-full" />
@@ -61,11 +61,11 @@ export default function Feedback() {
 
       <div className="max-w-7xl mx-auto">
         {/* HEADER SECTION */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 sm:mb-20 gap-8">
           <div className="max-w-2xl">
             <Motion.h1
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-              className="text-6xl md:text-7xl font-black text-white mb-6 tracking-tighter"
+              className="text-4xl sm:text-6xl lg:text-7xl font-black text-white mb-6 tracking-tighter"
             >
               Client <span className="text-brand-primary">Voices.</span>
             </Motion.h1>
@@ -76,7 +76,7 @@ export default function Feedback() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group relative px-10 py-5 bg-white text-slate-950 font-black rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)] uppercase tracking-widest text-sm"
+            className="group relative px-6 sm:px-10 py-4 sm:py-5 bg-white text-slate-950 font-black rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)] uppercase tracking-widest text-sm"
           >
             Leave a Review
             <span className="ml-3 inline-block group-hover:rotate-12 transition-transform">✍️</span>
@@ -114,7 +114,7 @@ export default function Feedback() {
                   </div>
 
                   <div className="pt-6 border-t border-white/5 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-bold">
+                    <div className="w-12 h-12 shrink-0 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-bold">
                       {item.name.charAt(0)}
                     </div>
                     <div>

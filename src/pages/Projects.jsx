@@ -571,7 +571,7 @@ function FeaturedCard({ project }) {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 p-12 grid md:grid-cols-2 gap-12 items-center min-h-[420px]">
+        <div className="featured-content relative z-10 p-5 sm:p-8 lg:p-12 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[420px]">
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="glow-dot" />
@@ -579,7 +579,7 @@ function FeaturedCard({ project }) {
                 Featured Project
               </span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-5 leading-tight" style={{ fontFamily: 'Syne, sans-serif' }}>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-5 leading-tight" style={{ fontFamily: 'Syne, sans-serif' }}>
               {project.title}
             </h2>
             <p className="text-slate-400 text-base leading-relaxed mb-8 max-w-lg">
@@ -593,7 +593,7 @@ function FeaturedCard({ project }) {
                 </span>
               ))}
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3">
               <Link to={`/project/${project._id}`}
                 className="px-7 py-3.5 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-white transition-all"
                 style={{ background: '#3b82f6', boxShadow: '0 8px 32px rgba(59,130,246,0.35)' }}
@@ -719,7 +719,7 @@ export default function Projects() {
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-                className="text-6xl md:text-7xl font-black leading-[1] tracking-tight"
+                className="text-4xl sm:text-6xl lg:text-7xl font-black leading-[1] tracking-tight"
                 style={{ fontFamily: 'Syne, sans-serif' }}
               >
                 <span className="text-white">Selected</span>
@@ -901,7 +901,7 @@ export default function Projects() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-              className="relative rounded-[2rem] overflow-hidden p-12 md:p-20 text-center"
+              className="relative rounded-[2rem] overflow-hidden p-5 sm:p-10 lg:p-20 text-center"
               style={{ background: 'linear-gradient(135deg, rgba(9,16,39,0.95), rgba(15,28,61,0.95))', border: '1px solid rgba(59,130,246,0.15)' }}
             >
               {/* bg glow */}
@@ -915,7 +915,7 @@ export default function Projects() {
                     Open for Work
                   </span>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight" style={{ fontFamily: 'Syne, sans-serif' }}>
+                <h2 className="text-3xl sm:text-4xl lg:text-6xl font-black text-white mb-6 leading-tight" style={{ fontFamily: 'Syne, sans-serif' }}>
                   Like What You<br />
                   <span style={{ background: 'linear-gradient(135deg, #3b82f6, #60a5fa, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                     See?
