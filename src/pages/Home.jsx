@@ -1,3 +1,4 @@
+import TechArsenalModal from '../components/TechArsenalModal';
 import axios from 'axios';
 import CONFIG from '../api/config';
 import ProjectCard from '../components/ProjectCard';
@@ -38,8 +39,11 @@ function SocialLinks() {
       <button key={name} type="button" disabled aria-label={`${name} profile coming soon`} title={`${name} profile coming soon`}>{createElement(Icon)}</button>
     ))}
   </div>;
-}export default function Home() {
+}
+
+export default function Home() {
   const [contact, setContact] = useState(false);
+  const [arsenal, setArsenal] = useState(false);
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState('loading');
   useEffect(() => { let active = true; getProjects().then(data => { if (active) { setProjects(data); setStatus('ready'); } }).catch(() => { if (active) setStatus('error'); }); return () => { active = false; }; }, []);
@@ -53,9 +57,10 @@ function SocialLinks() {
     <section className="sc-trusted sc-section"><div className="sc-wrap"><p>Trusted technologies</p><div className="sc-tech-logos">{technologies.slice(0,8).map(([name, Icon, color]) => <div key={name}>{createElement(Icon, {style: {color}})}<span>{name}</span></div>)}</div></div></section>
     <section className="sc-section" id="selected-projects"><div className="sc-wrap sc-project-section"><div className="sc-section-head"><div><p className="sc-eyebrow">02 — Featured projects</p><h2>Selected<br/><span>Projects.</span></h2></div><Link className="sc-mini-link" to="/projects">View All Projects <ArrowRight size={14}/></Link></div><div className="sc-projects">{featured.map(project => <ProjectCard key={project._id} project={project}/>)}</div>{!featured.length && <div className="sc-empty" role="status">{status === 'loading' ? 'Loading selected projects…' : status === 'error' ? 'Projects are temporarily unavailable.' : 'New projects are on the way.'}<Link to="/projects">Explore the project gallery <ArrowRight size={16}/></Link></div>}</div></section>
     <section className="sc-section"><div className="sc-wrap sc-services"><div><p className="sc-eyebrow">03 — What I do</p><h2>From Idea<br/>to <span>Real Product.</span></h2><p>I design and develop web applications that are fast, secure, user-focused, and built to scale.</p></div><div className="sc-service-grid">{services.map(([Icon,title,desc]) => <button key={title} className="sc-service" onClick={() => setContact(true)}><span className="sc-service-icon">{createElement(Icon)}</span><span><strong>{title}</strong><small>{desc}</small></span></button>)}</div></div></section>
-    <section className="sc-section" id="stack"><div className="sc-wrap sc-stack"><div className="sc-section-head"><div><p className="sc-eyebrow">04 — Tech stack</p><h2>My <span>Tech Arsenal.</span></h2></div><a href="#about" className="sc-mini-link">View Details <ArrowRight size={14}/></a></div><div className="sc-tech-pills">{technologies.map(([name,Icon,color]) => <span key={name}>{createElement(Icon, {style: {color}})}{name === 'React' ? 'React 19' : name}</span>)}</div></div></section>
+    <section className="sc-section" id="stack"><div className="sc-wrap sc-stack"><div className="sc-section-head"><div><p className="sc-eyebrow">04 — Tech stack</p><h2>My <span>Tech Arsenal.</span></h2></div><button type="button" onClick={() => setArsenal(true)} className="sc-mini-link" aria-haspopup="dialog">View Details <ArrowRight size={14}/></button></div><div className="sc-tech-pills">{technologies.map(([name,Icon,color]) => <span key={name}>{createElement(Icon, {style: {color}})}{name === 'React' ? 'React 19' : name}</span>)}</div></div></section>
     <section className="sc-section" id="about"><div className="sc-wrap sc-about"><div><p className="sc-eyebrow">05 — About me</p><h2>More Than<br/>Just <span>Code.</span></h2></div><div><p>I'm a Full-Stack Developer and digital builder, focused on creating real products that solve real problems. I combine technical skills, problem-solving, and a product mindset to build impactful web applications.</p><Link className="sc-button primary" to="/projects">Explore My Work <ArrowRight size={16}/></Link></div><div className="sc-stats">{[[projects.length ? `${projects.length}+` : 'MERN','Projects & products'],['100%','Passion for Building'],['MERN','Main Stack'],['Always','Learning & Improving']].map(([value,label]) => <div key={label}><strong>{value}</strong><span>{label}</span></div>)}</div></div></section>
     <section className="sc-section sc-contact" id="contact"><div className="sc-orbit"/><div className="sc-wrap"><div><p className="sc-eyebrow">06 — Let's work together</p><h2>Have a <span>Project</span> in Mind?</h2><p>Let's turn your idea into a real product. I'm open to freelance work,<br className="sc-desktop-break"/> collaborations and new opportunities.</p></div><div className="sc-actions"><button className="sc-button primary" onClick={() => setContact(true)}>Hire Me <ArrowRight size={16}/></button><button className="sc-button" onClick={() => setContact(true)}>Contact Me</button></div></div></section>
+    {arsenal && <TechArsenalModal onClose={() => setArsenal(false)}/>}
     <ContactModal isOpen={contact} onClose={() => setContact(false)}/>
   </div>;
 }
