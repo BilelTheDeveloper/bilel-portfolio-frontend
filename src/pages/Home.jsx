@@ -540,8 +540,8 @@ export default function Home() {
   ];
 
   const securityChecks = [
-    { label: 'HttpOnly Cookies' },
-    { label: 'Signed Gate Tokens' },
+    { label: 'HttpOnly Session Cookies' },
+    { label: 'Authenticator Verification' },
     { label: 'Session Revocation' },
     { label: 'Request Validation' },
     { label: 'Origin Checks' },

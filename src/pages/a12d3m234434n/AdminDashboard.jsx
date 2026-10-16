@@ -5,12 +5,16 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 
 // --- Components ---
 import Sidebar from './Sidebar';
+import AdminSecurity from './AdminSecurity';
+import { useLocation, useOutletContext } from 'react-router-dom';
 import AddProject from './AddProject';
 import AdminFeedback from './AdminFeedback';
 import AdminMessages from './AdminMessages'; // NEW: Import the Inquiry management page
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('stats');
+  const location = useLocation();
+  const { admin } = useOutletContext();
   const [overview, setOverview] = useState(null);
   const [overviewError, setOverviewError] = useState(false);
   useEffect(() => {
@@ -53,6 +57,8 @@ export default function AdminDashboard() {
       case 'feedback':
         return <AdminFeedback />;
 
+      case 'security':
+        return <AdminSecurity />;
       case 'messages': // NEW: This case handles the Inquiries tab
         return <AdminMessages />;
 
@@ -98,12 +104,13 @@ export default function AdminDashboard() {
                <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-4 border-[#05070a] rounded-full"></span>
             </div>
             <div className="text-left">
-              <p className="text-xs font-black text-white leading-none mb-1">Bilel Developer</p>
-              <p className="text-[10px] text-brand-primary font-black uppercase tracking-tighter">System Admin</p>
+              <p className="text-xs font-black text-white leading-none mb-1 truncate max-w-[190px]" title={admin?.email}>{admin?.email || "Administrator"}</p>
+              <p className="text-[10px] text-brand-primary font-black uppercase tracking-tighter">{admin?.role || "Admin"} · Verified</p>
             </div>
           </div>
         </header>
 
+        {location.state?.recoveryUsed && <p role="status" className="mb-7 p-4 border border-amber-300/20 rounded-xl text-amber-200 text-sm">You signed in with a recovery code. Keep your remaining codes safe. If your phone is lost, use the documented operator recovery procedure to replace your authenticator.</p>}
         {/* Dynamic View Section with Professional Transitions */}
         <AnimatePresence mode="wait">
           <Motion.div

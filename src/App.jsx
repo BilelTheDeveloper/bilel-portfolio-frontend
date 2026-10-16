@@ -15,7 +15,6 @@ const ProjectDetails = lazy(() => import('./pages/ProjectDetails'));
 // These now point to your new "Secret Folder" name
 const AdminDashboard = lazy(() => import('./pages/a12d3m234434n/AdminDashboard'));
 const Login = lazy(() => import('./pages/a12d3m234434n/Login'));
-const AdminGate = lazy(() => import('./pages/a12d3m234434n/AdminGate'));
 
 
 /**
@@ -35,12 +34,12 @@ function PageMetadata() {
     const titles = { '/': 'Bilel — Full-Stack Developer', '/projects': 'Selected Projects — Bilel', '/feedback': 'Client Reviews — Bilel' };
     document.title = titles[pathname] || (pathname.startsWith('/project/') ? 'Project Case Study — Bilel' : 'Admin — Bilel');
     const canonical = document.querySelector('link[rel="canonical"]');
-    const url = new URL(pathname, import.meta.env.VITE_SITE_URL || 'https://bilel.dev').href;
+    const url = new URL(pathname, import.meta.env.VITE_SITE_URL || 'https://www.bilelthedev.website').href;
     canonical?.setAttribute('href', url);
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', url);
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', document.title);
     const robots = document.querySelector('meta[name="robots"]');
-    robots?.setAttribute('content', pathname.startsWith('/a12d3m234434n') ? 'noindex, nofollow' : 'index, follow');
+    robots?.setAttribute('content', (pathname.startsWith('/admin') || pathname.startsWith('/a12d3m234434n')) ? 'noindex, nofollow' : 'index, follow');
   }, [pathname]);
   return null;
 }
@@ -52,13 +51,11 @@ const App = () => {
 
       <Suspense fallback={<div className="min-h-screen grid place-items-center text-slate-300" role="status">Loading page…</div>}>
       <Routes>
-        {/* --- 1. ADMIN LOGIN --- */}
-        <Route path="/a12d3m234434n/gate" element={<AdminGate />} />
-        <Route path="/a12d3m234434n/login" element={<Login />} />
-
-        {/* --- 2. SECURE ADMIN ZONE --- */}
+        <Route path="/admin" element={<Login />} />
+        <Route path="/admin/login" element={<Navigate to="/admin" replace />} />
+        <Route path="/a12d3m234434n/*" element={<Navigate to="/admin" replace />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/a12d3m234434n/*" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
 
         {/* --- 3. PUBLIC WEBSITE LAYOUT --- */}
@@ -89,7 +86,7 @@ const App = () => {
                     </div>
 
                     <a
-                      href="/a12d3m234434n/login"
+                      href="/admin"
                       className="text-[10px] uppercase font-black tracking-[0.2em] border border-white/10 px-3 py-1.5 rounded-lg hover:bg-white/5 hover:border-brand-primary/40 transition-all text-slate-600 hover:text-brand-primary"
                     >
                       Admin Access

@@ -1,12 +1,25 @@
 import axios from 'axios';
-const BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : 'https://bilel-portfolio-backend-l652.onrender.com/api')).replace(/\/$/, '');
-axios.defaults.timeout = 15000;
+// Same-origin API routing keeps Secure/SameSite cookies working without third-party cookies.
+const BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+let adminCsrf = '';
+export const clearAdminCsrf = () => { adminCsrf = ''; };
+axios.defaults.timeout = 20000;
 axios.interceptors.request.use(config => {
   const url = new URL(config.url, window.location.origin);
   const api = new URL(BASE_URL, window.location.origin);
-  config.withCredentials = url.origin === api.origin && /\/(auth|messages|feedback\/admin)(?:\/|$)/.test(url.pathname) && !(url.pathname.endsWith('/messages') && config.method === 'post');
-  if (url.origin === api.origin && !['get', 'head', 'options'].includes(config.method)) config.withCredentials = !['/messages', '/feedback'].some(path => url.pathname.endsWith(path));
+  const isApi = url.origin === api.origin && (url.pathname === api.pathname || url.pathname.startsWith(`${api.pathname}/`));
+  const mutation = !['get', 'head', 'options'].includes(config.method || 'get');
+  const publicSubmission = config.method === 'post' && ['/messages', '/feedback'].some(path => url.pathname === `${api.pathname}${path}`);
+  config.withCredentials = isApi && !publicSubmission && (mutation || /\/(auth|messages|feedback\/admin)(?:\/|$)/.test(url.pathname));
+  if (isApi && url.pathname.startsWith(`${api.pathname}/auth/`)) config.headers['X-Admin-Request'] = '1';
+  if (isApi && adminCsrf && !publicSubmission) config.headers['X-Admin-CSRF'] = adminCsrf;
   return config;
+});
+axios.interceptors.response.use(response => {
+  const url = new URL(response.config.url, window.location.origin);
+  const api = new URL(BASE_URL, window.location.origin);
+  if (url.origin === api.origin && url.pathname.startsWith(`${api.pathname}/auth/`) && response.data?.csrfToken) adminCsrf = response.data.csrfToken;
+  return response;
 });
 export const CONFIG = {
   API_URL: BASE_URL,
