@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'r
 
 // --- Components ---
 import Navbar from './components/Navbar';
+import './showcase.css';
 import ProtectedRoute from './components/ProtectedRoute'; // Secure Auth Wrapper
 
 // --- Pages ---
@@ -62,7 +63,7 @@ const App = () => {
         <Route
           path="*"
           element={
-            <div className="min-h-screen text-white font-sans selection:bg-brand-primary selection:text-white bg-[#060e25]">
+            <div className="public-site min-h-screen text-white selection:bg-brand-primary selection:text-white">
               <Navbar />
               <a href="#main-content" className="skip-link">Skip to content</a>
               <main id="main-content" tabIndex={-1} className="animate-in fade-in duration-500">
@@ -75,25 +76,7 @@ const App = () => {
                 </Routes>
               </main>
 
-              <footer className="py-12 border-t border-white/5 text-center text-slate-500 text-sm">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                  <p>© {new Date().getFullYear()} bilel.dev — Built with MERN Stack</p>
-
-                  <div className="flex gap-6 items-center">
-                    <div className="flex gap-6 opacity-60 hover:opacity-100 transition-opacity text-xs uppercase font-bold tracking-widest">
-                      <a href={import.meta.env.VITE_LINKEDIN_URL || "mailto:bilel.thedeveloper@gmail.com"} target="_blank" rel="noreferrer" className="hover:text-brand-primary transition-colors">{import.meta.env.VITE_LINKEDIN_URL ? "LinkedIn" : "Email"}</a>
-                      <a href={import.meta.env.VITE_GITHUB_URL || "/projects"} target="_blank" rel="noreferrer" className="hover:text-brand-primary transition-colors">{import.meta.env.VITE_GITHUB_URL ? "GitHub" : "Projects"}</a>
-                    </div>
-
-                    <a
-                      href="/admin"
-                      className="text-[10px] uppercase font-black tracking-[0.2em] border border-white/10 px-3 py-1.5 rounded-lg hover:bg-white/5 hover:border-brand-primary/40 transition-all text-slate-600 hover:text-brand-primary"
-                    >
-                      Admin Access
-                    </a>
-                  </div>
-                </div>
-              </footer>
+              <footer className="sc-footer"><div className="sc-wrap"><a href="/" className="sc-logo"><b>B</b><strong>bilel<span>.dev</span></strong></a><p>© {new Date().getFullYear()} Bilel Helal. All rights reserved.</p><nav aria-label="Footer navigation"><a href="/">Home</a><a href="/projects">Projects</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="/feedback">Reviews</a><a href="/admin">Admin</a></nav></div></footer>
             </div>
           }
         />

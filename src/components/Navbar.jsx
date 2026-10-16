@@ -1,6 +1,7 @@
+import { FileText } from 'lucide-react';
 import Dialog from './Dialog';
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ContactModal from './ContactModal';
 
 /* ─── INLINE STYLES ─────────────────────────────── */
@@ -256,7 +257,7 @@ function ResumeModal({ isOpen, onClose }) {
 
           {/* Close */}
           <button aria-label="Close résumé" onClick={onClose}
-            className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+            className="absolute z-20 top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             ✕
           </button>
@@ -265,7 +266,7 @@ function ResumeModal({ isOpen, onClose }) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 relative z-10">
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl overflow-hidden border-2" style={{ borderColor: 'rgba(59,130,246,0.4)', boxShadow: '0 0 24px rgba(59,130,246,0.3)' }}>
-                <img src="/BilelTheDev.webp" alt="Bilel" className="w-full h-full object-cover" />
+                <img src="/BilelHelal.png" alt="Bilel" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 flex items-center justify-center"
                 style={{ background: '#060e25', borderColor: '#060e25' }}>
@@ -385,258 +386,9 @@ function ResumeModal({ isOpen, onClose }) {
 
 /* ─── MAIN NAVBAR ──────────────────────────────── */
 export default function Navbar() {
-  const location = useLocation();
-  const [isContactOpen, setIsContactOpen]   = useState(false);
-  const [isResumeOpen,  setIsResumeOpen]    = useState(false);
-  const [scrolled,      setScrolled]        = useState(false);
-  const [scrollPct,     setScrollPct]       = useState(0);
-  const [menuOpen,      setMenuOpen]        = useState(false);
-
-  /* scroll listener */
-  useEffect(() => {
-    const handler = () => {
-      setScrolled(window.scrollY > 24);
-      const docH  = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollPct(docH > 0 ? (window.scrollY / docH) * 100 : 0);
-    };
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
-  }, []);
-
-  const navLinks = [
-    {
-      name: 'Home', path: '/',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Projects', path: '/projects',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Feedback', path: '/feedback',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-      ),
-    },
-  ];
-
-  const isActive = (path) => location.pathname === path;
-
-  return (
-    <>
-      <style>{navStyles}</style>
-
-      {/* ══════════════════════════════════════════
-          TOP HEADER
-      ══════════════════════════════════════════ */}
-      <header
-        className={`nav-root nav-header sticky top-0 z-50 w-full ${scrolled ? 'scrolled' : ''}`}
-        style={{
-          background: scrolled ? undefined : 'rgba(6,14,37,0.72)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}
-      >
-        {/* Scroll progress bar */}
-        <div className="scroll-progress" style={{ width: `${scrollPct}%` }} />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between relative">
-
-          {/* ── LOGO ── */}
-          <Link to="/" className="flex items-center gap-3 group z-10">
-            <div
-              className="logo-box w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-base"
-              style={{ background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', boxShadow: '0 4px 16px rgba(59,130,246,0.3)' }}
-            >
-              B
-            </div>
-            <span className="syne text-xl font-black tracking-tight text-white">
-              bilel<span style={{ color: '#3b82f6' }}>.dev</span>
-            </span>
-          </Link>
-
-          {/* ── DESKTOP NAV ── */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`nav-link flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all
-                  ${isActive(link.path)
-                    ? 'active text-blue-400'
-                    : 'text-slate-400 hover:text-white'
-                  }`}
-                style={isActive(link.path)
-                  ? { background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }
-                  : { border: '1px solid transparent' }
-                }
-              >
-                {link.icon}
-                {link.name}
-                {isActive(link.path) && (
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#3b82f6' }} />
-                )}
-              </Link>
-            ))}
-          </nav>
-
-          {/* ── CTA BUTTONS ── */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Resume */}
-            <button
-              onClick={() => setIsResumeOpen(true)}
-              className="resume-btn px-5 py-2 text-sm font-semibold text-slate-300 rounded-full flex items-center gap-2"
-              style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Resume
-            </button>
-
-            {/* Hire Me */}
-            <button
-              onClick={() => setIsContactOpen(true)}
-              className="hire-btn px-6 py-2.5 text-sm font-bold rounded-full text-white flex items-center gap-2 group/btn"
-              style={{ background: '#3b82f6', boxShadow: '0 6px 24px rgba(59,130,246,0.3)' }}
-            >
-              Hire Me
-              <span className="group-hover/btn:translate-x-1 transition-transform text-xs">→</span>
-            </button>
-          </div>
-
-          {/* ── MOBILE HAMBURGER ── */}
-          <button
-            className="lg:hidden flex flex-col gap-1.5 p-2 rounded-xl z-10"
-            style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-navigation"
-          >
-            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
-          </button>
-        </div>
-
-        {/* ── MOBILE DROPDOWN MENU ── */}
-        <div
-          id="mobile-navigation"
-          inert={!menuOpen}
-          className="lg:hidden overflow-y-auto transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
-          style={{
-            maxHeight: menuOpen ? 'min(340px, calc(100dvh - 140px))' : '0',
-            borderTop: menuOpen ? '1px solid rgba(255,255,255,0.05)' : 'none',
-            background: 'rgba(6,14,37,0.98)',
-          }}
-        >
-          <div className="px-6 py-4 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all
-                  ${isActive(link.path) ? 'text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/4'}`}
-                style={isActive(link.path)
-                  ? { background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }
-                  : { border: '1px solid transparent' }
-                }
-              >
-                {link.icon}
-                {link.name}
-              </Link>
-            ))}
-
-            {/* Mobile CTA row */}
-            <div className="flex gap-3 pt-3 pb-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <button
-                onClick={() => { setIsResumeOpen(true); setMenuOpen(false); }}
-                className="flex-1 py-2.5 text-sm font-bold text-slate-300 rounded-xl text-center"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                Resume
-              </button>
-              <button
-                onClick={() => { setIsContactOpen(true); setMenuOpen(false); }}
-                className="flex-1 py-2.5 text-sm font-bold text-white rounded-xl text-center"
-                style={{ background: '#3b82f6', boxShadow: '0 4px 16px rgba(59,130,246,0.3)' }}
-              >
-                Hire Me →
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* ══════════════════════════════════════════
-          MOBILE BOTTOM NAV
-      ══════════════════════════════════════════ */}
-      <nav className="nav-root lg:hidden fixed bottom-0 left-0 z-50 w-full mobile-nav-bg px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-around max-w-sm mx-auto">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`mobile-nav-item flex flex-col items-center gap-1 min-w-[4rem] ${isActive(link.path) ? 'active' : ''}`}
-            >
-              <div
-                className="mobile-icon-wrap w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300"
-                style={{
-                  border: `1px solid ${isActive(link.path) ? 'rgba(59,130,246,0.3)' : 'transparent'}`,
-                  background: isActive(link.path) ? 'rgba(59,130,246,0.1)' : 'transparent',
-                }}
-              >
-                <span style={{ color: isActive(link.path) ? '#60a5fa' : '#94a3b8' }}>
-                  {link.icon}
-                </span>
-              </div>
-              <span className={`text-[9px] font-black uppercase tracking-widest ${isActive(link.path) ? 'text-blue-400' : 'text-slate-500'}`}>
-                {link.name}
-              </span>
-            </Link>
-          ))}
-
-          {/* Hire Me shortcut in bottom nav */}
-          <button
-            onClick={() => setIsContactOpen(true)}
-            className="flex flex-col items-center gap-1 min-w-[4rem]"
-          >
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-105"
-              style={{ background: '#3b82f6', boxShadow: '0 4px 16px rgba(59,130,246,0.4)' }}
-            >
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">Hire</span>
-          </button>
-        </div>
-      </nav>
-
-      {/* ══════════════════════════════════════════
-          MODALS
-      ══════════════════════════════════════════ */}
-      <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
-      <ResumeModal  isOpen={isResumeOpen}  onClose={() => setIsResumeOpen(false)} />
-    </>
-  );
+  const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [contact, setContact] = useState(false);
+  const [resume, setResume] = useState(false);
+  return <><style>{navStyles}</style><header className="sc-header"><div className="sc-wrap"><Link to="/" className="sc-logo" aria-label="Bilel.dev home"><b>B</b><strong>bilel<span>.dev</span></strong></Link><button className="sc-menu-button sc-button" aria-label="Toggle navigation" aria-expanded={menuOpen} aria-controls="showcase-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Close' : 'Menu'}</button><nav id="showcase-navigation" className={menuOpen ? 'open' : ''} aria-label="Main navigation"><Link className={pathname === '/' ? 'active' : ''} to="/" onClick={() => setMenuOpen(false)}>Home</Link><Link className={pathname.startsWith('/project') ? 'active' : ''} to="/projects" onClick={() => setMenuOpen(false)}>Projects</Link><a href="/#about" onClick={() => setMenuOpen(false)}>About</a><button onClick={() => { setContact(true); setMenuOpen(false); }}>Contact</button><div className="sc-nav-actions"><button className="sc-button" onClick={() => {setResume(true); setMenuOpen(false);}}><FileText size={14}/> Resume</button><button className="sc-button primary" onClick={() => {setContact(true); setMenuOpen(false);}}>Hire Me →</button></div></nav></div></header><ContactModal isOpen={contact} onClose={() => setContact(false)}/><ResumeModal isOpen={resume} onClose={() => setResume(false)}/></>;
 }

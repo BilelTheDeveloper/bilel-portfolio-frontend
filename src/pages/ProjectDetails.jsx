@@ -22,8 +22,8 @@ const styles = `
     --brand: #3b82f6;
     --brand-dim: rgba(59,130,246,0.15);
     --brand-glow: rgba(59,130,246,0.4);
-    --dark-bg: #060e25;
-    --dark-mid: #091027;
+    --dark-bg: #02090f;
+    --dark-mid: #07121d;
     --card: rgba(255,255,255,0.03);
     --border: rgba(255,255,255,0.07);
   }
@@ -466,7 +466,7 @@ function Counter({ target, suffix = '', duration = 1800 }) {
 /* ─── LOADING SCREEN ──────────────────────────────────── */
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#060e25' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#02090f' }}>
       <div className="relative w-20 h-20 mb-8">
         <div className="absolute inset-0 rounded-full border-2 animate-spin" style={{ borderColor: 'transparent', borderTopColor: '#3b82f6' }} />
         <div className="absolute inset-2 rounded-full border animate-spin" style={{ borderColor: 'transparent', borderTopColor: '#60a5fa', animationDirection: 'reverse', animationDuration: '0.8s' }} />
@@ -682,7 +682,7 @@ export default function ProjectDetails() {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="flex flex-col sm:flex-row gap-4"
             >
-              <a
+              {project.link && <a
                 href={project.link}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -691,7 +691,7 @@ export default function ProjectDetails() {
               >
                 <span>View Live Site</span>
                 <FiExternalLink size={15} />
-              </a>
+              </a>}
               <Link
                 to="/projects"
                 className="px-8 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white flex items-center justify-center gap-3 transition-all hover:bg-white/8"
@@ -716,7 +716,7 @@ export default function ProjectDetails() {
                 style={{ border: '1px solid rgba(59,130,246,0.25)', boxShadow: '0 32px 80px -12px rgba(59,130,246,0.35), 0 0 0 1px rgba(59,130,246,0.1)' }}>
                 <Motion.img
                   src={project.image}
-                  alt={project.title}
+                  alt={project.imageAlt || project.title}
                   className="w-full h-auto object-cover"
                   style={{ y: imgY }}
                   whileHover={{ scale: 1.04 }}

@@ -26,3 +26,4 @@ body:has(.studio) { padding-bottom:0; }
   .studio .studio-panel :is(code,p) { overflow-wrap:anywhere; }
   .studio aside nav button { min-height:44px; }
 }
+.studio-field :is(input,textarea)[aria-invalid="true"]{border-color:#fb7185}.studio-field>span{align-self:stretch;line-height:1.6}.studio-field>span>span{float:right;margin-left:10px}.studio-project-grid>.studio-panel>.project-card{border-radius:12px 12px 0 0;border:0}.studio-project-grid .project-card h3{font-size:22px!important}
