@@ -1,220 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import CONFIG from '../../api/config';
 
 export default function Login() {
+  const [stage, setStage] = useState('checking');
+  const [key, setKey] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [step, setStep] = useState(1); // 1: Check Email, 2: Enter Password
   const [loading, setLoading] = useState(false);
-  const [gateLoading, setGateLoading] = useState(true); // 🛡️ Stealth check state
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  // --- 🛡️ THE REAL GATE KEEPER CHECK (SERVER-SIDE) ---
   useEffect(() => {
-    const verifyServerGate = async () => {
-      try {
-        /**
-         * We ask the backend if the HttpOnly 'gate_pass' cookie is present.
-         * JavaScript cannot read the cookie, so we MUST ask the server.
-         */
-        const res = await axios.get(`${CONFIG.API_URL}/auth/gate-status`, { 
-          withCredentials: true 
-        });
-
-        if (res.data.success) {
-          // Cookie is valid! Show the login UI
-          setGateLoading(false);
-        }
-      } catch (err) {
-        /** * No cookie found or expired. 
-         * We clear any old localStorage hacks just to be clean and kick them out.
-         */
-        localStorage.removeItem('gate_passed'); 
-        window.location.href = "/";
-      }
-    };
-
-    verifyServerGate();
-  }, []);
-
-  // Step 1: Verify if the email is on the "Access List"
-  const handleCheckAccess = async (e) => {
-    e.preventDefault();
+    let active = true;
+    axios.get(`${CONFIG.API_URL}/auth/status`).then(() => { if (active) navigate('/a12d3m234434n', { replace: true }); }).catch(() => {
+      axios.get(`${CONFIG.API_URL}/auth/gate-status`).then(() => { if (active) setStage('login'); }).catch(() => { if (active) setStage('gate'); });
+    });
+    return () => { active = false; };
+  }, [navigate]);
+  const submit = async event => {
+    event.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError('');
-
     try {
-      /**
-       * 🛡️ SECURED: Added { withCredentials: true }
-       * The server now checks for the Gate Cookie before allowing this call.
-       */
-      const res = await axios.post(`${CONFIG.API_URL}/auth/check-access`, 
-        { email },
-        { withCredentials: true } 
-      );
-      
-      if (res.data.success) {
-        setStep(2); // Move to password step
+      if (stage === 'gate') {
+        await axios.post(`${CONFIG.API_URL}/auth/verify-gate`, { key });
+        setKey('');
+        setStage('login');
+      } else {
+        await axios.post(`${CONFIG.API_URL}/auth/login`, { email, password });
+        setPassword('');
+        navigate('/a12d3m234434n', { replace: true });
       }
-    } catch (err) {
-      // If the gate cookie was tampered with or missing, redirect home
-      setError(err.response?.data?.message || 'Access Denied');
-      if (err.response?.status === 401) {
-        navigate('/');
-      }
-    } finally {
-      setLoading(false);
-    }
+    } catch (failure) {
+      setError(failure.response?.data?.message || 'Unable to connect. Please try again.');
+      if (stage === 'login' && failure.response?.status === 401 && failure.response?.data?.message?.includes('gate')) setStage('gate');
+    } finally { setLoading(false); }
   };
-
-  // Step 2: Final Login with Password
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      /**
-       * 🛡️ SECURED: Added { withCredentials: true }
-       */
-      const res = await axios.post(`${CONFIG.API_URL}/auth/login`, 
-        { email, password },
-        { withCredentials: true } 
-      );
-
-      if (res.data.success) {
-        // Success! Dashboard logic
-        localStorage.removeItem('gate_passed'); // Full cleanup
-        navigate('/a12d3m234434n');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Invalid Credentials');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🛡️ STEALTH MODE: Show fake 404 while the server verifies the gate cookie
-  if (gateLoading) {
-    return (
-      <div className="min-h-screen bg-[#05070a] flex items-center justify-center text-slate-800">
-        <p className="text-[10px] uppercase tracking-[0.5em] font-black opacity-20">
-          404 - Request Not Found
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-primary/10 blur-[120px] -z-10 animate-pulse"></div>
-
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
-            BILEL<span className="text-brand-primary">.ADMIN</span>
-          </h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em]">
-            {step === 1 ? 'Access Protocol Initiated' : 'Identity Verification Required'}
-          </p>
-        </div>
-
-        <form 
-          onSubmit={step === 1 ? handleCheckAccess : handleLogin}
-          className="bg-white/5 border border-white/10 p-10 rounded-[2.5rem] backdrop-blur-xl shadow-2xl space-y-6"
-        >
-          <AnimatePresence mode="wait">
-            {step === 1 ? (
-              <motion.div 
-                key="step1"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
-              >
-                <label className="text-[10px] uppercase font-black tracking-widest text-slate-500 ml-2 block text-center">
-                  Enter Registered Admin Email
-                </label>
-                <input 
-                  type="email" 
-                  required
-                  autoFocus
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@bilel.dev"
-                  className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none transition-all text-center tracking-wider placeholder:text-slate-800"
-                />
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="step2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-4"
-              >
-                <p className="text-[10px] text-brand-primary font-bold uppercase tracking-widest mb-4 text-center">
-                  Access Granted For: <span className="text-white">{email}</span>
-                </p>
-                <label className="text-[10px] uppercase font-black tracking-widest text-slate-500 ml-2 block text-center">
-                  Security Access Key
-                </label>
-                <input 
-                  type="password" 
-                  required
-                  autoFocus
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className={`w-full bg-slate-950 border ${error ? 'border-red-500/50' : 'border-white/10'} rounded-2xl px-6 py-4 text-white focus:border-brand-primary outline-none transition-all text-center tracking-[0.5em] placeholder:tracking-normal placeholder:text-slate-800`}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {error && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-400 text-[10px] font-bold text-center uppercase tracking-widest"
-            >
-              {error}
-            </motion.p>
-          )}
-
-          <button 
-            disabled={loading}
-            className="w-full py-5 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest flex items-center justify-center gap-3"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              step === 1 ? "Check Authorization" : "Authorize Session"
-            )}
-          </button>
-
-          {step === 2 && (
-            <button 
-              type="button"
-              onClick={() => setStep(1)}
-              className="w-full text-[9px] text-slate-500 uppercase font-bold tracking-widest hover:text-white transition-colors"
-            >
-              Back to Verification
-            </button>
-          )}
-        </form>
-
-        <p className="text-center mt-8 text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-          Secure Terminal Connection <span className="text-green-500 underline ml-1">AES-256</span>
-        </p>
-      </motion.div>
-    </div>
-  );
+  const fieldClass = 'w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white';
+  return <main className="min-h-screen grid place-items-center bg-[#060e25] p-6 text-white">
+    <section className="w-full max-w-md rounded-3xl border border-white/10 bg-[#091027] p-7 sm:p-10 shadow-2xl">
+      <p className="text-xs tracking-widest uppercase text-blue-300 mb-3">Bilel.dev · Administration</p>
+      <h1 className="text-3xl font-bold mb-3">{stage === 'gate' ? 'Admin access' : stage === 'checking' ? 'Checking your session…' : 'Welcome back'}</h1>
+      <p className="text-slate-300 text-sm mb-8">{stage === 'gate' ? 'Enter your private gate key to continue to sign in.' : stage === 'login' ? 'Sign in with your administrator account.' : 'Please wait while your session is verified.'}</p>
+      {stage !== 'checking' && <form onSubmit={submit} className="space-y-5" aria-busy={loading}>
+        {stage === 'gate' ? <div><label htmlFor="gate-key" className="block mb-2 text-sm">Gate key</label><input id="gate-key" className={fieldClass} type="password" required maxLength={256} value={key} onChange={event => setKey(event.target.value)} autoComplete="off" disabled={loading} /></div> : <>
+          <div><label htmlFor="admin-email" className="block mb-2 text-sm">Email address</label><input id="admin-email" className={fieldClass} type="email" required maxLength={254} value={email} onChange={event => setEmail(event.target.value)} autoComplete="username" disabled={loading} /></div>
+          <div><label htmlFor="admin-password" className="block mb-2 text-sm">Password</label><input id="admin-password" className={fieldClass} type="password" required maxLength={256} value={password} onChange={event => setPassword(event.target.value)} autoComplete="current-password" disabled={loading} /></div>
+        </>}
+        {error && <p role="alert" className="rounded-xl border border-red-400/25 p-3 text-sm text-red-300">{error}</p>}
+        <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 rounded-xl py-3 font-bold">{loading ? 'Please wait…' : stage === 'gate' ? 'Continue securely' : 'Sign in'}</button>
+      </form>}
+      <Link to="/" className="block text-center text-sm text-slate-300 mt-6 underline">Back to portfolio</Link>
+    </section>
+  </main>;
 }

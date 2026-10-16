@@ -1,3 +1,4 @@
+import { getProjects } from '../api/projects';
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import ContactModal from '../components/ContactModal';
@@ -5,11 +6,10 @@ import ServiceModal from '../components/ServiceModal';
 import LatestWork from '../components/LatestWork';
 import axios from 'axios';
 import CONFIG from '../api/config';
- 
+
 /* ─── INLINE STYLES ─────────────────────────────────── */
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
- 
+
   :root {
     --brand: #3b82f6;
     --brand-glow: rgba(59,130,246,0.35);
@@ -18,12 +18,12 @@ const styles = `
     --card-bg: rgba(255,255,255,0.03);
     --border: rgba(255,255,255,0.07);
   }
- 
+
   .home-root { font-family: 'Space Grotesk', sans-serif; }
   .home-root h1,
   .home-root h2,
   .home-root h3 { font-family: 'Syne', sans-serif; }
- 
+
   /* ── CANVAS 3D ── */
   #hero-canvas {
     position: absolute;
@@ -33,7 +33,7 @@ const styles = `
     pointer-events: none;
     z-index: 1;
   }
- 
+
   /* ── SCROLL REVEAL ── */
   .reveal {
     opacity: 0;
@@ -56,14 +56,14 @@ const styles = `
     transition: opacity 0.7s ease, transform 0.7s ease;
   }
   .reveal-right.visible { opacity: 1; transform: translateX(0); }
- 
+
   /* ── DELAY HELPERS ── */
   .d100 { transition-delay: 0.1s; }
   .d200 { transition-delay: 0.2s; }
   .d300 { transition-delay: 0.3s; }
   .d400 { transition-delay: 0.4s; }
   .d500 { transition-delay: 0.5s; }
- 
+
   /* ── TYPEWRITER CURSOR ── */
   .cursor-blink::after {
     content: '|';
@@ -72,7 +72,7 @@ const styles = `
     margin-left: 2px;
   }
   @keyframes blink { 50% { opacity: 0; } }
- 
+
   /* ── GLOWING BUTTON ── */
   .btn-glow {
     position: relative;
@@ -94,7 +94,7 @@ const styles = `
     box-shadow: 0 0 30px var(--brand-glow), 0 0 60px var(--brand-glow);
     transform: translateY(-2px);
   }
- 
+
   /* ── SKILL PILL HOVER ── */
   .skill-pill {
     transition: all 0.25s ease;
@@ -106,7 +106,7 @@ const styles = `
     color: #93c5fd;
     transform: translateY(-2px);
   }
- 
+
   /* ── SERVICE CARD ── */
   .service-card {
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
@@ -175,7 +175,7 @@ const styles = `
     animation: termBlink 1s step-end infinite;
   }
   @keyframes termBlink { 50% { opacity: 0; } }
- 
+
   /* ── STAT CARD FLOAT ── */
   .float-card {
     animation: floatCard 3s ease-in-out infinite;
@@ -186,11 +186,11 @@ const styles = `
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
   }
- 
+
   /* ── RING SPIN ── */
   .ring-spin { animation: spinRing 20s linear infinite; }
   @keyframes spinRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
- 
+
   /* ── GRID TEXTURE ── */
   .grid-texture {
     background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
@@ -198,34 +198,34 @@ const styles = `
     background-size: 40px 40px;
     mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 60%, transparent 100%);
   }
- 
+
   /* ── STAT COUNTER ── */
   .stat-number {
     font-family: 'Syne', sans-serif;
     font-weight: 800;
   }
- 
+
   /* ── GLASS CARD ── */
   .glass {
     background: rgba(255,255,255,0.04);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.08);
   }
- 
+
   /* ── PROGRESS BAR ANIMATE ── */
   .progress-fill {
     width: 0%;
     transition: width 1.2s cubic-bezier(0.23, 1, 0.32, 1);
   }
   .progress-fill.animate { width: var(--target-width); }
- 
+
   /* ── NOISE ── */
   .noise-overlay {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
     opacity: 0.04;
     pointer-events: none;
   }
- 
+
   /* ── MARQUEE ── */
   .marquee-track {
     display: flex;
@@ -237,7 +237,7 @@ const styles = `
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
   }
- 
+
   /* ── GLOW LINE ── */
   .glow-line {
     background: linear-gradient(90deg, transparent, var(--brand), transparent);
@@ -256,16 +256,19 @@ const styles = `
     box-shadow: 0 20px 60px rgba(59,130,246,0.1);
   }
 `;
- 
+
 /* ─── 3D SCENE (THREE.JS) ─────────────────────────────── */
 function Hero3D({ canvasRef }) {
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let cancelled = false;
+    let listenersCleanup;
     let animId;
     let THREE_mod;
     let renderer, scene, camera;
     let particles, sphere, ring1, ring2, ring3;
     let mouseX = 0, mouseY = 0;
- 
+
     const load = async () => {
       if (!window.THREE) {
         await new Promise((res, rej) => {
@@ -277,22 +280,22 @@ function Hero3D({ canvasRef }) {
         });
       }
       THREE_mod = window.THREE;
-      init();
+      if (!cancelled) listenersCleanup = init();
     };
- 
+
     const init = () => {
       const T = THREE_mod;
       const canvas = canvasRef.current;
       if (!canvas) return;
- 
+
       renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(canvas.clientWidth, canvas.clientHeight);
- 
+
       scene = new T.Scene();
       camera = new T.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
       camera.position.z = 5;
- 
+
       const sphereGeo = new T.SphereGeometry(1.4, 32, 32);
       const sphereMat = new T.MeshBasicMaterial({
         color: 0x3b82f6,
@@ -302,7 +305,7 @@ function Hero3D({ canvasRef }) {
       });
       sphere = new T.Mesh(sphereGeo, sphereMat);
       scene.add(sphere);
- 
+
       const innerGeo = new T.SphereGeometry(1.1, 24, 24);
       const innerMat = new T.MeshBasicMaterial({
         color: 0x1d4ed8,
@@ -312,7 +315,7 @@ function Hero3D({ canvasRef }) {
       });
       const inner = new T.Mesh(innerGeo, innerMat);
       scene.add(inner);
- 
+
       const makeRing = (rx, ry, rz, opacity, color = 0x3b82f6) => {
         const geo = new T.TorusGeometry(2.2, 0.008, 6, 120);
         const mat = new T.MeshBasicMaterial({ color, transparent: true, opacity });
@@ -326,7 +329,7 @@ function Hero3D({ canvasRef }) {
       ring1 = makeRing(1.2, 0.4, 0, 0.45);
       ring2 = makeRing(0.3, 1.1, 0.6, 0.3, 0x60a5fa);
       ring3 = makeRing(0.8, 0.2, 1.4, 0.2, 0x93c5fd);
- 
+
       const pCount = 600;
       const pGeo = new T.BufferGeometry();
       const positions = new Float32Array(pCount * 3);
@@ -342,13 +345,13 @@ function Hero3D({ canvasRef }) {
       });
       particles = new T.Points(pGeo, pMat);
       scene.add(particles);
- 
+
       const onMouse = (e) => {
         mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
         mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
       };
       window.addEventListener('mousemove', onMouse);
- 
+
       const onResize = () => {
         if (!canvas) return;
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -356,48 +359,55 @@ function Hero3D({ canvasRef }) {
         renderer.setSize(canvas.clientWidth, canvas.clientHeight);
       };
       window.addEventListener('resize', onResize);
- 
+
       const clock = new T.Clock();
       const animate = () => {
         animId = requestAnimationFrame(animate);
         const t = clock.getElapsedTime();
- 
+
         sphere.rotation.y = t * 0.12;
         sphere.rotation.x = t * 0.06;
         inner.rotation.y = -t * 0.09;
         inner.rotation.x = t * 0.04;
- 
+
         ring1.rotation.z = t * 0.18;
         ring2.rotation.x = t * 0.14;
         ring3.rotation.y = t * 0.10;
- 
+
         particles.rotation.y = t * 0.02;
         particles.rotation.x = t * 0.008;
- 
+
         scene.rotation.x += (mouseY * 0.15 - scene.rotation.x) * 0.04;
         scene.rotation.y += (mouseX * 0.15 - scene.rotation.y) * 0.04;
- 
+
         renderer.render(scene, camera);
       };
       animate();
- 
+
       return () => {
         window.removeEventListener('mousemove', onMouse);
         window.removeEventListener('resize', onResize);
       };
     };
- 
+
     load().catch(console.error);
- 
+
     return () => {
+      cancelled = true;
+      listenersCleanup?.();
       cancelAnimationFrame(animId);
-      if (renderer) renderer.dispose();
+      scene?.traverse(object => {
+        object.geometry?.dispose();
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => material?.dispose());
+      });
+      renderer?.dispose();
     };
-  }, []);
- 
+  }, [canvasRef]);
+
   return null;
 }
- 
+
 /* ─── SCROLL REVEAL HOOK ───────────────────────────────── */
 function useScrollReveal() {
   useEffect(() => {
@@ -410,7 +420,7 @@ function useScrollReveal() {
     return () => obs.disconnect();
   }, []);
 }
- 
+
 /* ─── PROGRESS BARS HOOK ──────────────────────────────── */
 function useProgressBars() {
   useEffect(() => {
@@ -423,14 +433,14 @@ function useProgressBars() {
     return () => obs.disconnect();
   }, []);
 }
- 
+
 /* ─── TYPEWRITER HOOK ─────────────────────────────────── */
 function useTypewriter(words, speed = 80, pause = 1800) {
   const [display, setDisplay] = useState('');
   const [wordIdx, setWordIdx] = useState(0);
   const [charIdx, setCharIdx] = useState(0);
   const [deleting, setDeleting] = useState(false);
- 
+
   useEffect(() => {
     const current = words[wordIdx];
     const timeout = setTimeout(() => {
@@ -454,29 +464,32 @@ function useTypewriter(words, speed = 80, pause = 1800) {
     }, deleting ? speed / 2 : speed);
     return () => clearTimeout(timeout);
   }, [charIdx, deleting, wordIdx, words, speed, pause]);
- 
+
   return display;
 }
- 
+
 /* ─── MAIN COMPONENT ──────────────────────────────────── */
 export default function Home() {
   const canvasRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [projectError, setProjectError] = useState(false);
   const [latestProject, setLatestProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [feedbackError, setFeedbackError] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
   const [feedbacks, setFeedbacks] = useState([]);
- 
+
   useScrollReveal();
   useProgressBars();
- 
+
   const typeText = useTypewriter(
     ['Fast Websites.', 'Secure Systems.', 'Clean Code.', 'Real Results.'],
     75,
     2000
   );
- 
+
   const skills = [
     { name: 'React 19', level: 92 },
     { name: 'Node.js', level: 88 },
@@ -484,7 +497,7 @@ export default function Home() {
     { name: 'Next.js', level: 80 },
     { name: 'Tailwind', level: 95 },
   ];
- 
+
   const techBadges = [
     'React 19', 'Next.js', 'Node.js', 'Express', 'MongoDB',
     'Tailwind 4.0', 'TypeScript', 'REST API', 'JWT Auth', 'Cloudinary',
@@ -493,7 +506,7 @@ export default function Home() {
     'Tailwind 4.0', 'TypeScript', 'REST API', 'JWT Auth', 'Cloudinary',
     'Vercel', 'AWS', 'Git', 'Docker',
   ];
- 
+
   const services = [
     {
       title: 'Full-Stack Web Applications',
@@ -507,34 +520,34 @@ export default function Home() {
     },
     {
       title: 'Security-First Backend Engineering',
-      desc: 'Production-grade backends with enterprise authentication, hardened APIs, and layered defences — not bolted on after the fact.',
+      desc: 'Thoughtful backend architecture with authenticated admin access, validated inputs, and careful handling of personal data.',
       longDesc:
-        'Security is architecture, not a feature. I implement multi-layered auth systems: JWT access/refresh token rotation, Redis-backed JTI blacklisting, device fingerprinting, CSRF double-submit protection, and account-level brute force lockout. Every write endpoint has Joi schema validation. Every route has the right RBAC guard. Your users and their data are protected by design.',
+        'I design backend protection around the needs of each project: signed authentication cookies, protected write routes, request validation, origin checks, and rate limits. Security decisions and their limits are documented so the system can be maintained with confidence.',
       icon: '🔒',
-      features: ['JWT + Redis Token Blacklist', 'Device Fingerprinting', 'CSRF Protection', 'Rate Limiting + Lockout', 'Joi Schema Validation'],
-      tools: ['Helmet.js', 'JWT', 'Bcrypt', 'Redis', 'Joi', 'Cloudflare'],
-      highlight: 'Penetration-tested & hardened',
+      features: ['Signed Admin Sessions', 'Session Revocation', 'Request Origin Checks', 'Rate Limits', 'Input Validation'],
+      tools: ['Express', 'JWT', 'Bcrypt', 'Helmet', 'MongoDB'],
+      highlight: 'Practical protection, documented clearly',
     },
   ];
 
   // ── NEW: Security proof card data ──
   const attackLogs = [
-    { type: 'BLOCKED', label: 'SQL / NoSQL Injection', detail: 'Sanitizer stripped operator payload', color: '#10b981' },
-    { type: 'BLOCKED', label: 'Brute Force Login', detail: 'Account locked after 5 attempts via Redis', color: '#10b981' },
-    { type: 'BLOCKED', label: 'JWT Algorithm Confusion', detail: 'HS256 allowlist rejected forged RS256 token', color: '#10b981' },
-    { type: 'BLOCKED', label: 'CSRF Forged Request', detail: 'Double-submit token mismatch → 403', color: '#10b981' },
-    { type: 'BLOCKED', label: 'Session Replay Attack', detail: 'JTI blacklist confirmed token revoked', color: '#10b981' },
+    { type: 'DESIGN', label: 'Signed sessions', detail: 'Purpose-scoped tokens with expiration' },
+    { type: 'DESIGN', label: 'Validated input', detail: 'Type checks and bounded form submissions' },
+    { type: 'DESIGN', label: 'Private admin routes', detail: 'Session checks before protected operations' },
+    { type: 'DESIGN', label: 'Request origin checks', detail: 'Browser mutations limited to allowed origins' },
+    { type: 'DESIGN', label: 'Submission limits', detail: 'Rate limits for login and public forms' },
   ];
 
   const securityChecks = [
-    { label: 'HttpOnly Cookie Auth', passed: true },
-    { label: 'Redis JTI Blacklist', passed: true },
-    { label: 'Device Fingerprinting', passed: true },
-    { label: 'CSRF Double-Submit', passed: true },
-    { label: 'Refresh Token Hashing', passed: true },
-    { label: 'Admin RBAC Guard', passed: true },
+    { label: 'HttpOnly Cookies' },
+    { label: 'Signed Gate Tokens' },
+    { label: 'Session Revocation' },
+    { label: 'Request Validation' },
+    { label: 'Origin Checks' },
+    { label: 'Protected Admin Routes' },
   ];
- 
+
   const whyItems = [
     {
       id: '01',
@@ -552,28 +565,29 @@ export default function Home() {
       desc: 'I write code that is easy to read, easy to update, and built with the latest tools.',
     },
   ];
- 
+
   const handleOpenService = (service) => {
     setSelectedService(service);
     setIsServiceModalOpen(true);
   };
- 
+
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await axios.get(CONFIG.ENDPOINTS.PROJECTS);
+        const res = await getProjects().then(data => ({ data: { success: true, data } }));
         if (res.data.success && res.data.data.length > 0) {
           setLatestProject(res.data.data[0]);
         }
       } catch (err) {
         console.error('Error fetching latest preview:', err);
+        setProjectError(true);
       } finally {
         setLoading(false);
       }
     };
     fetchLatest();
   }, []);
- 
+
   useEffect(() => {
     const fetchHomeFeedback = async () => {
       try {
@@ -581,17 +595,18 @@ export default function Home() {
         setFeedbacks(res.data.data.slice(0, 3));
       } catch (err) {
         console.error('Error fetching home feedback:', err);
+        setFeedbackError(true);
       } finally {
-        setLoading(false);
+        setFeedbackLoading(false);
       }
     };
     fetchHomeFeedback();
   }, []);
- 
+
   return (
     <div className="home-root animate-in fade-in duration-700">
       <style>{styles}</style>
- 
+
       {/* ══════════════════════════════════════════════════
           HERO SECTION
       ══════════════════════════════════════════════════ */}
@@ -603,14 +618,14 @@ export default function Home() {
         <div className="absolute inset-0 noise-overlay" />
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/15 blur-[140px] rounded-full -z-10" />
         <div className="absolute bottom-0 right-1/3 w-72 h-72 bg-cyan-500/8 blur-[100px] rounded-full -z-10" />
- 
+
         <canvas
           ref={canvasRef}
           id="hero-canvas"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
         />
         <Hero3D canvasRef={canvasRef} />
- 
+
         <div className="max-w-7xl mx-auto px-6 py-28 grid md:grid-cols-2 gap-16 items-center relative z-10 w-full">
           <div className="order-2 md:order-1">
             <div className="reveal inline-flex items-center gap-2 px-4 py-1.5 rounded-full border mb-8 text-xs font-bold uppercase tracking-widest"
@@ -621,7 +636,7 @@ export default function Home() {
               </span>
               Open for New Projects
             </div>
- 
+
             <h1 className="reveal d100 text-5xl lg:text-[4.5rem] font-black leading-[1.05] mb-4 tracking-tight text-white">
               I Build Websites<br />
               That Actually<br />
@@ -629,17 +644,17 @@ export default function Home() {
                 Work.
               </span>
             </h1>
- 
+
             <div className="reveal d200 text-2xl font-bold mb-6" style={{ color: '#93c5fd', fontFamily: 'Syne, sans-serif', minHeight: '2rem' }}>
               <span className="cursor-blink">{typeText}</span>
             </div>
- 
+
             <p className="reveal d300 text-slate-400 text-lg leading-relaxed mb-10 max-w-lg">
               Hi, I am <span className="text-white font-semibold">Bilel</span> — a Full-Stack Web Developer.
               I build websites and web apps using the <span className="text-white font-semibold">MERN Stack</span>.
               Clean code. Fast delivery. Real results.
             </p>
- 
+
             <div className="reveal d400 flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -657,11 +672,11 @@ export default function Home() {
                 See My Work
               </Link>
             </div>
- 
+
             <div className="reveal d500 flex gap-8 mt-12 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               {[
                 { num: '4+', label: 'Projects Done' },
-                { num: '100%', label: 'Client Satisfaction' },
+                { num: 'MERN', label: 'Full-Stack Focus' },
                 { num: '2+', label: 'Years Experience' },
               ].map((s) => (
                 <div key={s.label}>
@@ -671,7 +686,7 @@ export default function Home() {
               ))}
             </div>
           </div>
- 
+
           <div className="order-1 md:order-2 flex justify-center items-center relative">
             <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-[22rem] lg:h-[22rem]">
               <div className="ring-spin absolute inset-[-20px] border-2 border-dashed rounded-full"
@@ -680,7 +695,7 @@ export default function Home() {
                 style={{ borderColor: 'rgba(59,130,246,0.12)', animationDirection: 'reverse', animationDuration: '30s' }} />
               <div className="absolute inset-[-8px] rounded-full animate-pulse"
                 style={{ border: '1px solid rgba(59,130,246,0.2)' }} />
- 
+
               <div className="absolute inset-4 rounded-full overflow-hidden border-4"
                 style={{ borderColor: 'var(--dark-bg)', boxShadow: '0 0 60px -8px rgba(59,130,246,0.6)' }}>
                 <img
@@ -689,7 +704,7 @@ export default function Home() {
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                 />
               </div>
- 
+
               <div className="float-card absolute -top-6 -left-8 md:-left-14 z-30">
                 <div className="glass px-4 py-3 rounded-2xl shadow-2xl">
                   <p className="stat-number text-xl font-black" style={{ color: '#3b82f6' }}>+4</p>
@@ -707,18 +722,18 @@ export default function Home() {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-green-400"
                     style={{ background: 'rgba(74,222,128,0.15)' }}>✓</div>
                   <div>
-                    <p className="text-white text-lg font-black leading-none">99%</p>
-                    <p className="text-slate-400 text-[8px] uppercase font-bold">Satisfaction</p>
+                    <p className="text-white text-lg font-black leading-none">Auth</p>
+                    <p className="text-slate-400 text-[8px] uppercase font-bold">Protected Access</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
- 
+
         <div className="absolute bottom-0 left-0 right-0 glow-line opacity-40" />
       </section>
- 
+
       {/* ══════════════════════════════════════════════════
           MARQUEE TECH STRIP
       ══════════════════════════════════════════════════ */}
@@ -732,7 +747,7 @@ export default function Home() {
           ))}
         </div>
       </div>
- 
+
       {/* ══════════════════════════════════════════════════
           SERVICES SECTION  (UPDATED)
       ══════════════════════════════════════════════════ */}
@@ -740,7 +755,7 @@ export default function Home() {
         <div className="absolute top-1/4 -left-20 w-96 h-96 blur-[140px] -z-10 animate-pulse" style={{ background: 'rgba(59,130,246,0.08)' }} />
         <div className="absolute bottom-1/4 -right-20 w-96 h-96 blur-[140px] -z-10 animate-pulse" style={{ background: 'rgba(56,189,248,0.06)' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] blur-[180px] -z-10" style={{ background: 'rgba(16,185,129,0.03)' }} />
- 
+
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-16">
@@ -753,12 +768,16 @@ export default function Home() {
               I focus on one thing and do it very well — building web applications that are fast, secure, and engineered to last.
             </p>
           </div>
- 
+
           {/* ── TOP TWO SERVICE CARDS ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             {services.map((s, i) => (
               <div
                 key={s.title}
+                role="button"
+                tabIndex={0}
+                aria-label={`Learn more about ${s.title}`}
+                onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleOpenService(s); } }}
                 onClick={() => handleOpenService(s)}
                 className={`reveal d${(i + 1) * 100} service-card p-10 rounded-[2rem] flex flex-col justify-between h-full`}
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
@@ -819,15 +838,15 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-2xl font-bold text-white">Security-Hardened Infrastructure</h3>
+                      <h3 className="text-2xl font-bold text-white">Thoughtful Backend Protection</h3>
                       <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
                         style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>
-                        Pentest Verified
+                        Security Approach
                       </span>
                     </div>
                     <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">
-                      I conducted real penetration testing on my own production systems — running actual attack vectors to verify every defence layer holds. 
-                      The results below are from live tests against the deployed backend, not theoretical assumptions.
+                      My backend approach combines signed sessions, input validation, protected routes, and clear operational limits.
+                      The overview below describes implementation choices, not a live penetration test.
                     </p>
                   </div>
                 </div>
@@ -835,8 +854,8 @@ export default function Home() {
                 {/* Overall score */}
                 <div className="flex-shrink-0 text-center px-8 py-5 rounded-2xl"
                   style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
-                  <p className="text-4xl font-black mb-1" style={{ color: '#10b981', fontFamily: 'Syne, sans-serif' }}>6/6</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Attacks Blocked</p>
+                  <p className="text-4xl font-black mb-1" style={{ color: '#10b981', fontFamily: 'Syne, sans-serif' }}>6</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Design Principles</p>
                 </div>
               </div>
 
@@ -848,7 +867,7 @@ export default function Home() {
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                     <p className="text-xs font-black uppercase tracking-[0.25em]" style={{ color: '#10b981' }}>
-                      Penetration Test Log
+                      Security Approach
                     </p>
                   </div>
 
@@ -859,7 +878,7 @@ export default function Home() {
                       <div className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
                       <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
                       <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
-                      <span className="ml-3 text-[11px] font-bold" style={{ color: 'rgba(16,185,129,0.5)' }}>security-audit.log</span>
+                      <span className="ml-3 text-[11px] font-bold" style={{ color: 'rgba(16,185,129,0.5)' }}>security-design.md</span>
                     </div>
 
                     {/* Log entries */}
@@ -879,7 +898,7 @@ export default function Home() {
                       {/* Terminal cursor line */}
                       <div className="flex items-center gap-2 pt-1">
                         <span className="text-[11px]" style={{ color: '#10b981' }}>$</span>
-                        <span className="text-[11px]" style={{ color: 'rgba(16,185,129,0.5)' }}>awaiting_next_vector</span>
+                        <span className="text-[11px]" style={{ color: 'rgba(16,185,129,0.5)' }}>documented_by_design</span>
                         <span className="terminal-cursor" />
                       </div>
                     </div>
@@ -892,7 +911,7 @@ export default function Home() {
                   {/* Checklist */}
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.25em] mb-5" style={{ color: '#3b82f6' }}>
-                      Security Layers Active
+                      Protection by Design
                     </p>
                     <div className="space-y-3">
                       {securityChecks.map((check, idx) => (
@@ -904,7 +923,7 @@ export default function Home() {
                             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
-                            Active
+                            Included
                           </span>
                         </div>
                       ))}
@@ -916,8 +935,8 @@ export default function Home() {
                     style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.12)' }}>
                     <span className="text-green-400 text-lg flex-shrink-0">ℹ️</span>
                     <p className="text-slate-400 text-xs leading-relaxed">
-                      Security is not a feature I add at the end — it is part of the architecture from the first commit. 
-                      Every project I deliver includes hardened auth, input validation, and proper access controls.
+                      Security is not a feature I add at the end — it is part of the architecture from the first commit.
+                      The scope and validation of each protection depend on the project. These are design principles, not live audit results.
                     </p>
                   </div>
                 </div>
@@ -963,16 +982,16 @@ export default function Home() {
           </div>
         </div>
       </section>
- 
+
       {/* ══════════════════════════════════════════════════
           WHY BILEL.DEV SECTION
       ══════════════════════════════════════════════════ */}
       <section className="py-28 px-6 relative overflow-hidden border-b" style={{ background: 'var(--dark-bg)', borderColor: 'rgba(255,255,255,0.05)' }}>
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 blur-[100px] -z-10" style={{ background: 'rgba(59,130,246,0.06)' }} />
- 
+
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
- 
+
             <div>
               <p className="reveal text-xs font-black uppercase tracking-[0.3em] mb-4" style={{ color: '#3b82f6' }}>The Reason</p>
               <h2 className="reveal d100 text-4xl md:text-5xl font-black text-white mb-10 leading-tight">
@@ -1006,7 +1025,7 @@ export default function Home() {
                 ))}
               </div>
             </div>
- 
+
             <div className="relative group">
               <div className="absolute -top-8 left-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: 'rgba(59,130,246,0.6)' }}>
                 Latest Project
@@ -1039,14 +1058,14 @@ export default function Home() {
                       </div>
                       <h3 className="text-2xl font-bold text-white mb-3">{latestProject.title}</h3>
                       <p className="text-slate-400 text-sm mb-6 line-clamp-2">{latestProject.description}</p>
-                      <Link to="/projects" className="inline-flex items-center gap-2 text-white font-bold group/link">
+                      <Link to={`/project/${latestProject._id}`} className="inline-flex items-center gap-2 text-white font-bold group/link">
                         View Full Project
                         <span className="transition-transform group-hover/link:translate-x-2" style={{ color: '#3b82f6' }}>→</span>
                       </Link>
                     </div>
                   </>
                 ) : (
-                  <div className="p-8 text-center text-slate-500 italic">No projects yet.</div>
+                  <div className="p-8 text-center text-slate-300" role="status">{projectError ? "Projects are temporarily unavailable." : "New projects are on the way."} <Link to="/projects" className="underline">Open gallery</Link></div>
                 )}
               </div>
               <div className="absolute -bottom-6 -right-6 w-full h-full rounded-3xl -z-10 transition-transform duration-500 group-hover:rotate-2"
@@ -1055,16 +1074,16 @@ export default function Home() {
           </div>
         </div>
       </section>
- 
+
       {/* LATEST WORK */}
       <LatestWork />
- 
+
       {/* ══════════════════════════════════════════════════
           FEEDBACK SECTION
       ══════════════════════════════════════════════════ */}
       <section className="py-28 px-6 relative overflow-hidden border-t" style={{ background: 'var(--dark-bg)', borderColor: 'rgba(255,255,255,0.05)' }}>
         <div className="absolute top-0 right-0 w-96 h-96 blur-[120px] -z-10" style={{ background: 'rgba(59,130,246,0.05)' }} />
- 
+
         <div className="max-w-7xl mx-auto">
           <div className="reveal text-center mb-16">
             <p className="text-xs font-black uppercase tracking-[0.3em] mb-4" style={{ color: '#3b82f6' }}>Testimonials</p>
@@ -1075,8 +1094,9 @@ export default function Home() {
               Real words from real people who worked with me.
             </p>
           </div>
- 
-          {loading ? (
+
+          {feedbackError && <p role="status" className="text-center text-slate-300">Reviews are temporarily unavailable. Please try again later.</p>}
+          {feedbackLoading ? (
             <div className="flex justify-center py-10">
               <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#3b82f6', borderTopColor: 'transparent' }} />
             </div>
@@ -1116,12 +1136,12 @@ export default function Home() {
                 ))
               ) : (
                 <div className="col-span-3 text-center text-slate-500 py-10 rounded-3xl border border-dashed" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-                  Success stories coming soon...
+                  {feedbackError ? "Browse the reviews page to try again." : "Success stories coming soon…"}
                 </div>
               )}
             </div>
           )}
- 
+
           <div className="reveal mt-16 text-center">
             <Link
               to="/feedback"
@@ -1136,7 +1156,7 @@ export default function Home() {
           </div>
         </div>
       </section>
- 
+
       {/* Modals */}
       <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <ServiceModal isOpen={isServiceModalOpen} onClose={() => setIsServiceModalOpen(false)} service={selectedService} />

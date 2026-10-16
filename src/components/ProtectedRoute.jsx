@@ -13,7 +13,7 @@ const ProtectedRoute = () => {
         // USE CONFIG.API_URL HERE - NOT LOCALHOST
         await axios.get(`${CONFIG.API_URL}/auth/status`);
         setIsAuth(true);
-      } catch (err) {
+      } catch {
         setIsAuth(false);
       }
     };
@@ -28,7 +28,7 @@ const ProtectedRoute = () => {
     );
   }
 
-  return isAuth ? <Outlet /> : <Navigate to="/admin/login" replace />;
+  return isAuth ? <Outlet /> : <Navigate to="/a12d3m234434n/login" replace />;
 };
 
 export default ProtectedRoute;

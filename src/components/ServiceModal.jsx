@@ -1,4 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import Dialog from './Dialog';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 
 export default function ServiceModal({ isOpen, onClose, service }) {
   if (!service) return null;
@@ -6,22 +7,22 @@ export default function ServiceModal({ isOpen, onClose, service }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <Dialog label="Service details" onClose={onClose}>
           {/* Backdrop */}
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+          <Motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl"
           />
-          
+
           {/* Modal Content */}
-          <motion.div 
+          <Motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-2xl bg-slate-900 border border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-2xl overflow-hidden"
+            className="relative w-full max-w-2xl bg-slate-900 border border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-h-[90dvh] overflow-y-auto"
           >
             {/* Background Glow */}
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-primary/20 blur-[100px] rounded-full" />
@@ -29,13 +30,13 @@ export default function ServiceModal({ isOpen, onClose, service }) {
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-8">
                 <div className="text-5xl">{service.icon}</div>
-                <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors text-3xl">×</button>
+                <button aria-label="Close dialog" onClick={onClose} className="text-slate-500 hover:text-white transition-colors text-3xl">×</button>
               </div>
 
               <h3 className="text-3xl md:text-4xl font-black text-white mb-4">
                 {service.title}
               </h3>
-              
+
               <p className="text-slate-400 text-lg leading-relaxed mb-8">
                 {service.longDesc}
               </p>
@@ -64,15 +65,15 @@ export default function ServiceModal({ isOpen, onClose, service }) {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={onClose}
                 className="w-full py-4 bg-brand-primary hover:bg-blue-600 text-white font-bold rounded-2xl transition-all"
               >
                 Got it, thanks!
               </button>
             </div>
-          </motion.div>
-        </div>
+          </Motion.div>
+        </Dialog>
       )}
     </AnimatePresence>
   );

@@ -1,18 +1,18 @@
+import axios from 'axios';
+import CONFIG from '../../api/config';
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const menuItems = [
   { id: 'stats', label: 'Dashboard', icon: '📊' },
-  { id: 'add-project', label: 'Add Project', icon: '🚀' }, 
-  { id: 'services', label: 'Manage Services', icon: '🛠️' },
-  { id: 'feedback', label: 'Client Reviews', icon: '💬' }, 
+  { id: 'add-project', label: 'Add Project', icon: '🚀' },
+  { id: 'feedback', label: 'Client Reviews', icon: '💬' },
   { id: 'messages', label: 'Inquiries', icon: '✉️' }, // This connects to AdminMessages
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   return (
-    <div className="w-72 h-screen bg-slate-950 border-r border-white/5 flex flex-col p-6 fixed left-0 top-0 z-50">
+    <div className="w-full lg:w-72 lg:h-screen bg-slate-950 border-r border-white/5 flex flex-col p-6 relative lg:fixed left-0 top-0 z-50">
       {/* Admin Profile Branding */}
       <div className="mb-10 px-4">
         <h2 className="text-xl font-black text-white tracking-tighter">
@@ -31,14 +31,14 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${
-              activeTab === item.id 
-                ? 'bg-brand-primary text-white shadow-lg shadow-blue-500/20' 
+              activeTab === item.id
+                ? 'bg-brand-primary text-white shadow-lg shadow-blue-500/20'
                 : 'text-slate-400 hover:bg-white/5 hover:text-white'
             }`}
           >
             {/* Active Indicator Glow */}
             {activeTab === item.id && (
-              <motion.div 
+              <Motion.div
                 layoutId="activeGlow"
                 className="absolute inset-0 bg-white/10 rounded-2xl blur-md -z-10"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
@@ -50,11 +50,11 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             }`}>
               {item.icon}
             </span>
-            
+
             <span className="font-bold text-sm tracking-wide">{item.label}</span>
-            
+
             {activeTab === item.id && (
-              <motion.div 
+              <Motion.div
                 layoutId="activePill"
                 className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
@@ -70,11 +70,11 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">System Status</p>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
-            <p className="text-[10px] text-brand-primary font-black uppercase">Database Connected</p>
+            <p className="text-[10px] text-brand-primary font-black uppercase">Admin Session</p>
           </div>
         </div>
-        
-        <button className="w-full flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-2xl transition-all font-bold text-sm group">
+
+        <button onClick={async () => { try { await axios.post(`${CONFIG.API_URL}/auth/logout`); window.location.assign('/'); } catch { window.alert('Unable to sign out. Please try again.'); } }} className="w-full flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-2xl transition-all font-bold text-sm group">
           <span className="group-hover:-translate-x-1 transition-transform">🚪</span>
           Logout
         </button>

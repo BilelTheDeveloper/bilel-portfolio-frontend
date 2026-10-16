@@ -1,12 +1,10 @@
+import { getProjects } from '../api/projects';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import axios from 'axios';
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { motion as Motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import CONFIG from '../api/config';
 
 
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
   :root {
     --brand: #3b82f6;
@@ -325,7 +323,7 @@ function TiltCard({ children, className = '' }) {
   };
 
   return (
-    <motion.div
+    <Motion.div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -333,7 +331,7 @@ function TiltCard({ children, className = '' }) {
       className={`card-glow-wrapper ${className}`}
     >
       {children}
-      <motion.div
+      <Motion.div
         className="pointer-events-none absolute inset-0 rounded-[1.5rem] z-20"
         style={{
           background: useTransform(
@@ -343,7 +341,7 @@ function TiltCard({ children, className = '' }) {
           ),
         }}
       />
-    </motion.div>
+    </Motion.div>
   );
 }
 
@@ -354,6 +352,7 @@ function AnimatedCounter({ target, duration = 2000, suffix = '' }) {
   const started = useRef(false);
 
   useEffect(() => {
+    let frame;
     const obs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !started.current) {
         started.current = true;
@@ -363,14 +362,14 @@ function AnimatedCounter({ target, duration = 2000, suffix = '' }) {
           const progress = Math.min(elapsed / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
           setCount(Math.floor(eased * target));
-          if (progress < 1) requestAnimationFrame(tick);
+          if (progress < 1) frame = requestAnimationFrame(tick);
           else setCount(target);
         };
-        requestAnimationFrame(tick);
+        frame = requestAnimationFrame(tick);
       }
     }, { threshold: 0.5 });
     if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
+    return () => { obs.disconnect(); cancelAnimationFrame(frame); };
   }, [target, duration]);
 
   return <span ref={ref} className="count-ticker">{count}{suffix}</span>;
@@ -395,7 +394,7 @@ function ProjectCard({ project, index }) {
 
   return (
     <TiltCard>
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: index * 0.12, ease: [0.23, 1, 0.32, 1] }}
@@ -411,7 +410,7 @@ function ProjectCard({ project, index }) {
       >
         {/* ── IMAGE ── */}
         <div className="relative aspect-[16/10] overflow-hidden">
-          <motion.img
+          <Motion.img
             src={project.image}
             alt={project.title}
             className="w-full h-full object-cover"
@@ -440,7 +439,7 @@ function ProjectCard({ project, index }) {
 
           {/* Live demo tag */}
           {project.link && (
-            <motion.div
+            <Motion.div
               className="absolute bottom-4 right-4 z-10 flex items-center gap-2"
               animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 8 }}
               transition={{ duration: 0.3 }}
@@ -450,7 +449,7 @@ function ProjectCard({ project, index }) {
                 <span className="live-dot w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
                 <span className="text-[9px] uppercase font-black tracking-widest text-blue-300">Live</span>
               </div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {/* Index number */}
@@ -481,12 +480,12 @@ function ProjectCard({ project, index }) {
           </div>
 
           {/* Title */}
-          <motion.h3
+          <Motion.h3
             className="text-xl font-bold mb-3 leading-tight"
             style={{ fontFamily: 'Syne, sans-serif', color: hovered ? '#93c5fd' : '#fff', transition: 'color 0.3s ease' }}
           >
             {project.title}
-          </motion.h3>
+          </Motion.h3>
 
           {/* Description */}
           <p className="text-sm leading-relaxed mb-6 flex-grow"
@@ -508,13 +507,13 @@ function ProjectCard({ project, index }) {
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 View Case Study
-                <motion.span
+                <Motion.span
                   animate={{ x: hovered ? 4 : 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   style={{ color: '#60a5fa' }}
                 >
                   →
-                </motion.span>
+                </Motion.span>
               </span>
             </Link>
 
@@ -536,7 +535,7 @@ function ProjectCard({ project, index }) {
         {/* Corner accent */}
         <div className="absolute top-0 right-0 w-16 h-16 pointer-events-none"
           style={{ background: 'radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 70%)' }} />
-      </motion.div>
+      </Motion.div>
     </TiltCard>
   );
 }
@@ -549,7 +548,7 @@ function FeaturedCard({ project }) {
 
   return (
     <TiltCard className="col-span-full">
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
@@ -560,7 +559,7 @@ function FeaturedCard({ project }) {
       >
         {/* Background image full bleed */}
         <div className="absolute inset-0">
-          <motion.img
+          <Motion.img
             src={project.image}
             alt={project.title}
             className="w-full h-full object-cover"
@@ -633,7 +632,7 @@ function FeaturedCard({ project }) {
             </div>
           </div>
         </div>
-      </motion.div>
+      </Motion.div>
     </TiltCard>
   );
 }
@@ -652,7 +651,7 @@ export default function Projects() {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(CONFIG.ENDPOINTS.PROJECTS);
+        const res = await getProjects().then(data => ({ data: { success: true, data } }));
         if (res.data.success) {
           setMyWorks(res.data.data);
         }
@@ -677,8 +676,8 @@ export default function Projects() {
     return myWorks.filter(p => p.category === activeFilter);
   }, [myWorks, activeFilter]);
 
-  const featured = myWorks[0] || null;
-  const rest = filtered.length > 0 ? (activeFilter === 'All' ? filtered.slice(1) : filtered) : [];
+  const featured = myWorks.find(project => project.isFeatured) || myWorks[0] || null;
+  const rest = activeFilter === 'All' ? filtered.filter(project => project._id !== featured?._id) : filtered;
 
   const techStrip = ['React 19', 'Next.js', 'Node.js', 'MongoDB', 'Tailwind', 'TypeScript', 'Express', 'REST API', 'JWT', 'AWS',
     'React 19', 'Next.js', 'Node.js', 'MongoDB', 'Tailwind', 'TypeScript', 'Express', 'REST API', 'JWT', 'AWS'];
@@ -702,7 +701,7 @@ export default function Projects() {
 
         <div className="max-w-7xl mx-auto relative z-10">
           {/* Eyebrow */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -712,11 +711,11 @@ export default function Projects() {
             <span className="text-[11px] uppercase tracking-[0.35em] font-black" style={{ color: '#3b82f6' }}>
               Portfolio / Selected Works
             </span>
-          </motion.div>
+          </Motion.div>
 
           <div className="grid md:grid-cols-2 gap-12 items-end mb-16">
             <div>
-              <motion.h1
+              <Motion.h1
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
@@ -728,10 +727,10 @@ export default function Projects() {
                 <span style={{ background: 'linear-gradient(135deg, #3b82f6, #60a5fa, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                   Works.
                 </span>
-              </motion.h1>
+              </Motion.h1>
             </div>
 
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
@@ -762,11 +761,11 @@ export default function Projects() {
                   <p className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#475569' }}>Yrs Exp.</p>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
 
           {/* Filter bar */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
@@ -787,7 +786,7 @@ export default function Projects() {
                 )}
               </button>
             ))}
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
 
@@ -818,7 +817,7 @@ export default function Projects() {
 
           {/* Error */}
           {!loading && error && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-24 rounded-3xl"
@@ -827,13 +826,13 @@ export default function Projects() {
               <p className="text-2xl font-black text-red-400 mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
                 Connection Error
               </p>
-              <p className="text-slate-500 text-sm">{error}</p>
-            </motion.div>
+              <p className="text-slate-300 text-sm" role="alert">{error}</p><button className="mt-6 underline text-blue-300" onClick={() => window.location.reload()}>Retry loading projects</button>
+            </Motion.div>
           )}
 
           {/* Empty state */}
           {!loading && !error && myWorks.length === 0 && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-32 rounded-3xl"
@@ -844,13 +843,13 @@ export default function Projects() {
                 No Projects Yet
               </p>
               <p className="text-slate-500">Something incredible is being built. Check back soon.</p>
-            </motion.div>
+            </Motion.div>
           )}
 
           {/* Featured + Grid */}
           {!loading && !error && myWorks.length > 0 && (
             <AnimatePresence mode="wait">
-              <motion.div
+              <Motion.div
                 key={activeFilter}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -873,7 +872,7 @@ export default function Projects() {
 
                 {/* Empty filtered result */}
                 {filtered.length === 0 && (
-                  <motion.div
+                  <Motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="text-center py-24 rounded-3xl"
@@ -883,9 +882,9 @@ export default function Projects() {
                       No projects in "{activeFilter}"
                     </p>
                     <p className="text-slate-500 text-sm">Try a different category.</p>
-                  </motion.div>
+                  </Motion.div>
                 )}
-              </motion.div>
+              </Motion.div>
             </AnimatePresence>
           )}
         </div>
@@ -897,7 +896,7 @@ export default function Projects() {
           <div className="max-w-7xl mx-auto">
             <div className="glow-line mb-16 opacity-30" />
 
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -946,7 +945,7 @@ export default function Projects() {
                   </Link>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         </section>
       )}

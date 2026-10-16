@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
+import { motion as Motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import {
   FiArrowLeft,
@@ -17,7 +17,6 @@ import CONFIG from '../api/config';
 
 /* ─── STYLES ──────────────────────────────────────────── */
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
   :root {
     --brand: #3b82f6;
@@ -298,6 +297,9 @@ function Background3D() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let cancelled = false;
+    let listenersCleanup;
     let animId;
     let renderer, scene, camera;
     let mouseX = 0, mouseY = 0;
@@ -311,6 +313,7 @@ function Background3D() {
           document.head.appendChild(s);
         });
       }
+      if (cancelled) return;
       const T = window.THREE;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -387,8 +390,18 @@ function Background3D() {
       };
     };
 
-    boot().catch(console.error);
-    return () => { cancelAnimationFrame(animId); if (renderer) renderer.dispose(); };
+    boot().then(cleanup => { if (!cancelled) listenersCleanup = cleanup; }).catch(console.error);
+    return () => {
+      cancelled = true;
+      listenersCleanup?.();
+      cancelAnimationFrame(animId);
+      scene?.traverse(object => {
+        object.geometry?.dispose();
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => material?.dispose());
+      });
+      renderer?.dispose();
+    };
   }, []);
 
   return <canvas ref={canvasRef} id="pd-canvas" />;
@@ -430,6 +443,7 @@ function Counter({ target, suffix = '', duration = 1800 }) {
   const ref = useRef(null);
   const started = useRef(false);
   useEffect(() => {
+    let frame;
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !started.current) {
         started.current = true;
@@ -438,13 +452,13 @@ function Counter({ target, suffix = '', duration = 1800 }) {
           const p = Math.min((Date.now() - t0) / duration, 1);
           const ease = 1 - Math.pow(1 - p, 3);
           setVal(Math.floor(ease * target));
-          if (p < 1) requestAnimationFrame(tick); else setVal(target);
+          if (p < 1) frame = requestAnimationFrame(tick); else setVal(target);
         };
-        requestAnimationFrame(tick);
+        frame = requestAnimationFrame(tick);
       }
     }, { threshold: 0.5 });
     if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
+    return () => { obs.disconnect(); cancelAnimationFrame(frame); };
   }, [target, duration]);
   return <span ref={ref}>{val}{suffix}</span>;
 }
@@ -470,6 +484,7 @@ export default function ProjectDetails() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   // Scroll parallax
   const containerRef = useRef(null);
@@ -482,18 +497,24 @@ export default function ProjectDetails() {
   useProgressBars();
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     const fetchProject = async () => {
+      setLoading(true);
+      setProject(null);
+      setError('');
       try {
-        const res = await axios.get(`${CONFIG.ENDPOINTS.PROJECTS}/${id}`);
-        if (res.data.success) setProject(res.data.data);
+        const res = await axios.get(`${CONFIG.ENDPOINTS.PROJECTS}/${id}`, { signal: controller.signal });
+        if (active && res.data.success) setProject(res.data.data);
       } catch (err) {
-        console.error('Error fetching project details:', err);
+        if (active && err.response?.status !== 404) setError('This project could not be loaded. Please try again.');
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchProject();
     window.scrollTo(0, 0);
+    return () => { active = false; controller.abort(); };
   }, [id]);
 
   if (loading) return (
@@ -508,8 +529,9 @@ export default function ProjectDetails() {
       <style>{styles}</style>
       <div className="pd-root min-h-screen flex flex-col items-center justify-center gap-8">
         <p className="text-6xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
-          Project <span style={{ color: '#3b82f6' }}>Not Found.</span>
+          {error ? 'Unable to load project.' : 'Project not found.'}
         </p>
+        {error && <p role="alert" className="text-slate-300">{error} <button onClick={() => window.location.reload()} className="underline">Retry</button></p>}
         <Link to="/projects" className="back-link flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-slate-500 transition-all" style={{ gap: '8px' }}>
           <span className="back-icon w-9 h-9 rounded-full border flex items-center justify-center transition-all" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
             <FiArrowLeft size={14} />
@@ -541,7 +563,7 @@ export default function ProjectDetails() {
       {/* ══════════════════════════════════════════════════
           NAV BAR
       ══════════════════════════════════════════════════ */}
-      <motion.nav
+      <Motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -567,12 +589,12 @@ export default function ProjectDetails() {
           <div className="live-dot" />
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Live</span>
         </div>
-      </motion.nav>
+      </Motion.nav>
 
       {/* ══════════════════════════════════════════════════
           HERO — CINEMATIC
       ══════════════════════════════════════════════════ */}
-      <motion.section
+      <Motion.section
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-24"
       >
@@ -589,7 +611,7 @@ export default function ProjectDetails() {
           {/* LEFT — TITLE BLOCK */}
           <div className="lg:col-span-6 xl:col-span-7 relative">
             {/* Eyebrow */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
@@ -599,10 +621,10 @@ export default function ProjectDetails() {
               <span className="text-[11px] font-black uppercase tracking-[0.4em]" style={{ color: '#3b82f6' }}>
                 Case Study
               </span>
-            </motion.div>
+            </Motion.div>
 
             {/* Giant title */}
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
@@ -617,10 +639,10 @@ export default function ProjectDetails() {
               }}>
                 .
               </span>
-            </motion.h1>
+            </Motion.h1>
 
             {/* Description */}
-            <motion.p
+            <Motion.p
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.25 }}
@@ -628,10 +650,10 @@ export default function ProjectDetails() {
               style={{ color: '#94a3b8', borderLeft: '2px solid rgba(59,130,246,0.4)' }}
             >
               {project.description}
-            </motion.p>
+            </Motion.p>
 
             {/* Meta row */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -651,10 +673,10 @@ export default function ProjectDetails() {
                   <span className="text-xs font-bold" style={{ color: '#60a5fa' }}>{project.category}</span>
                 </div>
               )}
-            </motion.div>
+            </Motion.div>
 
             {/* CTA buttons */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
@@ -678,11 +700,11 @@ export default function ProjectDetails() {
                 <FiArrowLeft size={15} />
                 All Projects
               </Link>
-            </motion.div>
+            </Motion.div>
           </div>
 
           {/* RIGHT — PROJECT IMAGE with parallax */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, x: 40, rotateY: -8 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
@@ -692,7 +714,7 @@ export default function ProjectDetails() {
               {/* Main image */}
               <div className="img-shine relative rounded-[2rem] overflow-hidden shadow-2xl"
                 style={{ border: '1px solid rgba(59,130,246,0.25)', boxShadow: '0 32px 80px -12px rgba(59,130,246,0.35), 0 0 0 1px rgba(59,130,246,0.1)' }}>
-                <motion.img
+                <Motion.img
                   src={project.image}
                   alt={project.title}
                   className="w-full h-auto object-cover"
@@ -706,7 +728,7 @@ export default function ProjectDetails() {
               </div>
 
               {/* Floating category badge */}
-              <motion.div
+              <Motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
                 className="absolute -top-5 -right-5 glass px-4 py-3 rounded-2xl shadow-2xl"
@@ -714,18 +736,18 @@ export default function ProjectDetails() {
                 <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: '#3b82f6' }}>
                   {project.category || 'Development'}
                 </p>
-              </motion.div>
+              </Motion.div>
 
               {/* Floating duration badge */}
               {project.duration && (
-                <motion.div
+                <Motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
                   className="absolute -bottom-5 -left-5 glass px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2"
                 >
                   <FiClock size={12} style={{ color: '#60a5fa' }} />
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{project.duration}</p>
-                </motion.div>
+                </Motion.div>
               )}
 
               {/* Decorative rings behind image */}
@@ -734,9 +756,9 @@ export default function ProjectDetails() {
               <div className="absolute -inset-12 rounded-[3rem] -z-10"
                 style={{ border: '1px solid rgba(59,130,246,0.05)' }} />
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
-      </motion.section>
+      </Motion.section>
 
       {/* TECH STRIP MARQUEE */}
       {marqueeItems.length > 0 && (
@@ -762,8 +784,8 @@ export default function ProjectDetails() {
           {[
             { label: 'Technologies Used', val: project.tags?.length || 0, suffix: '+', icon: <FiCode size={18} /> },
             { label: 'Features Built', val: project.features?.length || 0, suffix: '', icon: <FiZap size={18} /> },
-            { label: 'Delivery Rate', val: 100, suffix: '%', icon: <FiCheckCircle size={18} /> },
-            { label: 'Security Score', val: 99, suffix: '%', icon: <FiShield size={18} /> },
+            { label: 'Case Study', val: 1, suffix: '', icon: <FiCheckCircle size={18} /> },
+            { label: 'Project Links', val: project.link ? 1 : 0, suffix: '', icon: <FiShield size={18} /> },
           ].map((st, i) => (
             <div key={st.label} className="pd-reveal card-hover p-8 text-center relative"
               style={{ background: 'var(--dark-mid)', transitionDelay: `${i * 0.1}s` }}>
@@ -800,7 +822,7 @@ export default function ProjectDetails() {
               <div className="space-y-3">
                 {project.features && project.features.length > 0 ? (
                   project.features.map((feat, i) => (
-                    <motion.div
+                    <Motion.div
                       key={i}
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
@@ -811,7 +833,7 @@ export default function ProjectDetails() {
                     >
                       <div className="mt-1 w-2 h-2 rounded-full shrink-0" style={{ background: '#3b82f6' }} />
                       <span className="text-sm font-semibold text-slate-300 leading-tight">{feat}</span>
-                    </motion.div>
+                    </Motion.div>
                   ))
                 ) : (
                   <p className="text-sm text-slate-500 italic">No features listed.</p>
@@ -840,7 +862,7 @@ export default function ProjectDetails() {
           <div className="lg:col-span-8 space-y-8">
 
             {/* THE CHALLENGE */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -863,10 +885,10 @@ export default function ProjectDetails() {
               <p className="text-base leading-relaxed" style={{ color: '#94a3b8' }}>
                 {project.challenges || 'No challenge information provided for this project.'}
               </p>
-            </motion.div>
+            </Motion.div>
 
             {/* THE SOLUTION */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -889,11 +911,11 @@ export default function ProjectDetails() {
               <p className="text-base leading-relaxed" style={{ color: '#cbd5e1' }}>
                 {project.solutions || 'No solution information provided for this project.'}
               </p>
-            </motion.div>
+            </Motion.div>
 
             {/* SKILL CONFIDENCE BARS */}
             {project.tags && project.tags.length > 0 && (
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -931,7 +953,7 @@ export default function ProjectDetails() {
                     );
                   })}
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
           </div>
         </div>
@@ -942,7 +964,7 @@ export default function ProjectDetails() {
       ══════════════════════════════════════════════════ */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 pb-32">
         <div className="glow-line mb-16 opacity-30" />
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -993,7 +1015,7 @@ export default function ProjectDetails() {
               </Link>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
       </section>
     </div>
   );

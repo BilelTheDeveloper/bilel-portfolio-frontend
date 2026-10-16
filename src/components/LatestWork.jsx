@@ -1,23 +1,24 @@
+import { getProjects } from '../api/projects';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import axios from 'axios';
-import CONFIG from '../api/config';
+import { motion as Motion } from 'framer-motion';
 
 export default function LatestWork() {
   const [projects, setProjects] = useState([]);
+  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await axios.get(CONFIG.ENDPOINTS.PROJECTS);
+        const res = await getProjects().then(data => ({ data: { success: true, data } }));
         if (res.data.success) {
           // Takes only the 3 most recent projects from your MongoDB
           setProjects(res.data.data.slice(0, 3));
         }
       } catch (err) {
         console.error("Home Gallery Fetch Error:", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -26,12 +27,12 @@ export default function LatestWork() {
   }, []);
 
   // Don't render the section if there are no projects yet
-  if (!loading && projects.length === 0) return null;
+  if (!loading && !error && projects.length === 0) return null;
 
   return (
     <section className="py-24 px-6 bg-[#091027] relative">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Header Logic */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="space-y-4">
@@ -43,8 +44,8 @@ export default function LatestWork() {
             </h3>
           </div>
 
-          <Link 
-            to="/projects" 
+          <Link
+            to="/projects"
             className="group flex items-center gap-2 text-white font-bold hover:text-brand-primary transition-all pb-2 border-b-2 border-white/5 hover:border-brand-primary"
           >
             Explore All Works
@@ -52,6 +53,7 @@ export default function LatestWork() {
           </Link>
         </div>
 
+        {error && <p role="status" className="mb-6 text-slate-300">Projects are temporarily unavailable. <Link to="/projects" className="underline">Try the project gallery</Link>.</p>}
         {/* 3-Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {loading ? (
@@ -61,7 +63,7 @@ export default function LatestWork() {
             ))
           ) : (
             projects.map((project, index) => (
-              <motion.div
+              <Motion.div
                 key={project._id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -71,9 +73,9 @@ export default function LatestWork() {
               >
                 {/* Project Image */}
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img 
-                    src={project.image} 
-                    alt={project.title} 
+                  <img loading="lazy" decoding="async"
+                    src={project.image}
+                    alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                   />
                 </div>
@@ -85,23 +87,23 @@ export default function LatestWork() {
                       {project.category}
                     </span>
                   </div>
-                  
+
                   <h4 className="text-xl font-bold text-white mb-2 group-hover:text-brand-primary transition-colors">
                     {project.title}
                   </h4>
-                  
+
                   <p className="text-slate-400 text-sm line-clamp-1 mb-6">
                     {project.description}
                   </p>
 
-                  <Link 
-                    to="/projects" 
+                  <Link
+                    to={`/project/${project._id}`}
                     className="text-xs font-black uppercase tracking-tighter text-white/50 group-hover:text-white transition-colors"
                   >
                     View Project Details
                   </Link>
                 </div>
-              </motion.div>
+              </Motion.div>
             ))
           )}
         </div>

@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import CONFIG from '../../api/config';
+import React, { useState, useEffect } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 
 // --- Components ---
 import Sidebar from './Sidebar';
-import AddProject from './AddProject'; 
-import AdminFeedback from './AdminFeedback'; 
+import AddProject from './AddProject';
+import AdminFeedback from './AdminFeedback';
 import AdminMessages from './AdminMessages'; // NEW: Import the Inquiry management page
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('stats');
+  const [overview, setOverview] = useState(null);
+  const [overviewError, setOverviewError] = useState(false);
+  useEffect(() => {
+    if (activeTab !== 'stats') return;
+    let active = true;
+    axios.get(`${CONFIG.API_URL}/auth/overview`).then(response => { if (active) { setOverview(response.data.data); setOverviewError(false); } }).catch(() => { if (active) setOverviewError(true); });
+    return () => { active = false; };
+  }, [activeTab]);
 
   /**
    * Unified Content Router
@@ -20,11 +30,11 @@ export default function AdminDashboard() {
         return (
           <div className="space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Total Reviews" value="24" growth="+12%" />
-              <StatCard title="Ad Inquiries" value="156" growth="+5%" />
-              <StatCard title="Site Traffic" value="3.2k" growth="+18%" />
+              <StatCard title="Projects" value={overview?.projects ?? "—"} growth="Published" />
+              <StatCard title="Inquiries" value={overview?.inquiries ?? "—"} growth="Received" />
+              <StatCard title="Reviews" value={overview?.reviews ?? "—"} growth={`${overview?.pendingReviews ?? "—"} pending`} />
             </div>
-            
+
             {/* Recent Activity Section */}
             <div className="p-10 bg-white/2 border border-white/5 rounded-[2.5rem]">
               <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
@@ -32,7 +42,7 @@ export default function AdminDashboard() {
                 System Overview
               </h3>
               <div className="text-slate-500 text-sm italic font-medium">
-                Your portfolio is currently live and synchronized with the database. No pending errors detected.
+                {overviewError ? "Dashboard counts could not be loaded. Reopen this tab to retry." : overview ? "Counts reflect the current database. Review pending feedback and respond to inquiries from the sidebar." : "Loading current portfolio counts…"}
               </div>
             </div>
           </div>
@@ -63,11 +73,11 @@ export default function AdminDashboard() {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Main Content Area */}
-      <main className="ml-72 p-12 min-h-screen">
-        
+      <main className="lg:ml-72 p-5 sm:p-8 lg:p-12 min-h-screen">
+
         {/* Dynamic Header */}
-        <header className="flex justify-between items-center mb-16">
-          <motion.div
+        <header className="flex flex-wrap gap-6 justify-between items-center mb-10">
+          <Motion.div
             key={activeTab + "header"}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -78,8 +88,8 @@ export default function AdminDashboard() {
             <p className="text-slate-500 text-sm mt-1 font-bold uppercase tracking-widest opacity-70">
               Bilel Dashboard <span className="mx-2">/</span> {activeTab}
             </p>
-          </motion.div>
-          
+          </Motion.div>
+
           <div className="flex items-center gap-6 bg-white/5 p-2 pr-6 rounded-2xl border border-white/10 hover:border-brand-primary/30 transition-all">
             <div className="relative">
                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-primary to-blue-400 flex items-center justify-center text-xl shadow-lg">
@@ -96,7 +106,7 @@ export default function AdminDashboard() {
 
         {/* Dynamic View Section with Professional Transitions */}
         <AnimatePresence mode="wait">
-          <motion.div
+          <Motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -104,7 +114,7 @@ export default function AdminDashboard() {
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {renderContent()}
-          </motion.div>
+          </Motion.div>
         </AnimatePresence>
       </main>
     </div>

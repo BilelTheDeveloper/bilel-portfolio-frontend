@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Mail, Trash2, Calendar, User, Tag } from 'lucide-react'; // Optional: install lucide-react or use SVGs
 import CONFIG from '../../api/config';
 
@@ -30,7 +30,7 @@ export default function AdminMessages() {
     try {
       await axios.delete(`${CONFIG.API_URL}/messages/${id}`, { withCredentials: true });
       setMessages(messages.filter((msg) => msg._id !== id));
-    } catch (err) {
+    } catch {
       alert("Failed to delete message.");
     }
   };
@@ -64,7 +64,7 @@ export default function AdminMessages() {
         <AnimatePresence mode='popLayout'>
           {messages.length > 0 ? (
             messages.map((msg) => (
-              <motion.div
+              <Motion.div
                 key={msg._id}
                 layout
                 initial={{ opacity: 0, x: -20 }}
@@ -84,12 +84,13 @@ export default function AdminMessages() {
                         <p className="text-brand-primary text-xs font-black uppercase tracking-tighter">{msg.email}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">
                        <span className="flex items-center gap-1"><Calendar size={12}/> {new Date(msg.createdAt).toLocaleDateString()}</span>
                        <span className="flex items-center gap-1"><Tag size={12}/> {msg.subject}</span>
                     </div>
 
+                    <p className="mb-3 text-xs text-slate-300">Email notification: {msg.notificationStatus === 'sent' ? 'sent' : msg.notificationStatus === 'failed' ? 'delivery failed — inquiry saved here' : msg.notificationStatus ? 'queued for delivery' : 'received before notification tracking'}</p>
                     <div className="bg-slate-950/40 border border-white/5 p-6 rounded-2xl relative">
                       <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">
                         {msg.message}
@@ -99,14 +100,14 @@ export default function AdminMessages() {
 
                   {/* Right: Actions */}
                   <div className="flex lg:flex-col justify-end items-center gap-3">
-                    <a 
+                    <a
                       href={`mailto:${msg.email}`}
                       className="p-4 bg-white/5 hover:bg-brand-primary hover:text-white text-slate-400 rounded-2xl transition-all group/btn"
                       title="Reply via Email"
                     >
                       <Mail size={20} className="group-hover/btn:scale-110 transition-transform"/>
                     </a>
-                    <button 
+                    <button
                       onClick={() => handleDelete(msg._id)}
                       className="p-4 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-slate-400 rounded-2xl transition-all group/btn"
                       title="Delete Message"
@@ -115,17 +116,17 @@ export default function AdminMessages() {
                     </button>
                   </div>
                 </div>
-              </motion.div>
+              </Motion.div>
             ))
           ) : (
-            <motion.div 
+            <Motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="text-center py-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[3rem]"
             >
               <div className="text-4xl mb-4 opacity-20">📥</div>
               <h3 className="text-white font-bold text-xl">Inbox is empty</h3>
               <p className="text-slate-500 text-sm">No new inquiries at the moment. Time to run some Meta Ads?</p>
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
       </div>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /a12d3m234434n/
+Sitemap: https://bilel.dev/sitemap.xml

@@ -1,39 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import CONFIG from '../../api/config';
 
 export default function AdminFeedback() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Fetch ALL feedback (Approved + Pending)
-  const fetchFeedback = async () => {
+  useEffect(() => {
+    let active = true;
+    const fetchFeedback = async () => {
     try {
       const res = await axios.get(`${CONFIG.API_URL}/feedback/admin`);
-      setFeedbacks(res.data.data);
-      setLoading(false);
+      if (active) setFeedbacks(res.data.data);
+      if (active) setLoading(false);
     } catch (err) {
       console.error("Error fetching feedback:", err);
-      setLoading(false);
+      if (active) setLoading(false);
     }
   };
 
-  useEffect(() => {
     fetchFeedback();
+    return () => { active = false; };
   }, []);
 
   // 2. Toggle Approval Status
   const toggleApproval = async (id, currentStatus) => {
     try {
-      await axios.patch(`${CONFIG.API_URL}/feedback/${id}`, { 
-        isApproved: !currentStatus 
+      await axios.patch(`${CONFIG.API_URL}/feedback/${id}`, {
+        isApproved: !currentStatus
       });
       // Update local state for instant UI feel
-      setFeedbacks(feedbacks.map(f => 
+      setFeedbacks(feedbacks.map(f =>
         f._id === id ? { ...f, isApproved: !currentStatus } : f
       ));
-    } catch (err) {
+    } catch {
       alert("Failed to update status");
     }
   };
@@ -44,7 +45,7 @@ export default function AdminFeedback() {
     try {
       await axios.delete(`${CONFIG.API_URL}/feedback/${id}`);
       setFeedbacks(feedbacks.filter(f => f._id !== id));
-    } catch (err) {
+    } catch {
       alert("Delete failed");
     }
   };
@@ -71,15 +72,15 @@ export default function AdminFeedback() {
       <div className="grid grid-cols-1 gap-4">
         <AnimatePresence>
           {feedbacks.map((item) => (
-            <motion.div
+            <Motion.div
               layout
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               key={item._id}
               className={`p-6 rounded-2xl border transition-all ${
-                item.isApproved 
-                ? 'bg-brand-primary/5 border-brand-primary/20' 
+                item.isApproved
+                ? 'bg-brand-primary/5 border-brand-primary/20'
                 : 'bg-white/5 border-white/10'
               }`}
             >
@@ -100,8 +101,8 @@ export default function AdminFeedback() {
                   <button
                     onClick={() => toggleApproval(item._id, item.isApproved)}
                     className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                      item.isApproved 
-                      ? 'bg-green-500/20 text-green-500 border border-green-500/30' 
+                      item.isApproved
+                      ? 'bg-green-500/20 text-green-500 border border-green-500/30'
                       : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500/30'
                     }`}
                   >
@@ -119,7 +120,7 @@ export default function AdminFeedback() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
           ))}
         </AnimatePresence>
       </div>

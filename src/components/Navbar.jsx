@@ -1,10 +1,10 @@
+import Dialog from './Dialog';
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import ContactModal from './ContactModal';
 
 /* ─── INLINE STYLES ─────────────────────────────── */
 const navStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
   :root {
     --brand: #3b82f6;
@@ -211,11 +211,6 @@ const navStyles = `
 
 /* ─── RESUME MODAL ─────────────────────────────── */
 function ResumeModal({ isOpen, onClose }) {
-  useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -249,7 +244,7 @@ function ResumeModal({ isOpen, onClose }) {
   ];
 
   return (
-    <div className="resume-modal-overlay" onClick={onClose}>
+    <Dialog label="Bilel résumé" onClose={onClose} className="resume-modal-overlay">
       <div className="resume-modal-card nav-root" onClick={(e) => e.stopPropagation()}>
 
         {/* ── TOP STRIP ── */}
@@ -260,7 +255,7 @@ function ResumeModal({ isOpen, onClose }) {
             style={{ background: 'rgba(59,130,246,0.12)' }} />
 
           {/* Close */}
-          <button onClick={onClose}
+          <button aria-label="Close résumé" onClick={onClose}
             className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             ✕
@@ -289,7 +284,7 @@ function ResumeModal({ isOpen, onClose }) {
 
           {/* Stats row */}
           <div className="flex gap-8 mt-8 pt-6 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            {[['4+', 'Projects'], ['100%', 'Satisfaction'], ['2+', 'Yrs Exp']].map(([num, label]) => (
+            {[['4+', 'Projects'], ['MERN', 'Stack'], ['2+', 'Yrs Exp']].map(([num, label]) => (
               <div key={label}>
                 <p className="syne text-2xl font-black text-white">{num}</p>
                 <p className="text-slate-500 text-[10px] uppercase tracking-wider font-bold">{label}</p>
@@ -363,7 +358,7 @@ function ResumeModal({ isOpen, onClose }) {
 
           {/* Contact row */}
           <div className="flex flex-wrap gap-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <a href="mailto:bilel@example.com"
+            <a href="mailto:bilel.thedeveloper@gmail.com"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5"
               style={{ background: '#3b82f6', boxShadow: '0 4px 20px rgba(59,130,246,0.3)' }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,12 +374,12 @@ function ResumeModal({ isOpen, onClose }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Download PDF
+              Print / Save PDF
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -531,6 +526,8 @@ export default function Navbar() {
             style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
           >
             <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
             <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
@@ -540,6 +537,8 @@ export default function Navbar() {
 
         {/* ── MOBILE DROPDOWN MENU ── */}
         <div
+          id="mobile-navigation"
+          inert={!menuOpen}
           className="md:hidden overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
           style={{
             maxHeight: menuOpen ? '320px' : '0',
