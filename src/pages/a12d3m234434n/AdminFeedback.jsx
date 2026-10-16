@@ -1,129 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Check, Search, Trash2, RefreshCw } from 'lucide-react';
 import axios from 'axios';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
 import CONFIG from '../../api/config';
-
+import Dialog from '../../components/Dialog';
 export default function AdminFeedback() {
-  const [feedbacks, setFeedbacks] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    const fetchFeedback = async () => {
-    try {
-      const res = await axios.get(`${CONFIG.API_URL}/feedback/admin`);
-      if (active) setFeedbacks(res.data.data);
-      if (active) setLoading(false);
-    } catch (err) {
-      console.error("Error fetching feedback:", err);
-      if (active) setLoading(false);
-    }
-  };
-
-    fetchFeedback();
-    return () => { active = false; };
-  }, []);
-
-  // 2. Toggle Approval Status
-  const toggleApproval = async (id, currentStatus) => {
-    try {
-      await axios.patch(`${CONFIG.API_URL}/feedback/${id}`, {
-        isApproved: !currentStatus
-      });
-      // Update local state for instant UI feel
-      setFeedbacks(feedbacks.map(f =>
-        f._id === id ? { ...f, isApproved: !currentStatus } : f
-      ));
-    } catch {
-      alert("Failed to update status");
-    }
-  };
-
-  // 3. Delete Feedback
-  const deleteFeedback = async (id) => {
-    if (!window.confirm("Are you sure? This action is permanent.")) return;
-    try {
-      await axios.delete(`${CONFIG.API_URL}/feedback/${id}`);
-      setFeedbacks(feedbacks.filter(f => f._id !== id));
-    } catch {
-      alert("Delete failed");
-    }
-  };
-
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-brand-primary"></div>
-    </div>
-  );
-
-  return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-10">
-        <div>
-          <h2 className="text-3xl font-black text-white italic">Review <span className="text-brand-primary">Management.</span></h2>
-          <p className="text-slate-500 text-sm mt-1">Control which client voices appear on your public portfolio.</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
-          <span className="text-brand-primary font-bold">{feedbacks.length}</span>
-          <span className="text-slate-400 text-xs uppercase ml-2 tracking-widest font-bold">Total Reviews</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4">
-        <AnimatePresence>
-          {feedbacks.map((item) => (
-            <Motion.div
-              layout
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              key={item._id}
-              className={`p-6 rounded-2xl border transition-all ${
-                item.isApproved
-                ? 'bg-brand-primary/5 border-brand-primary/20'
-                : 'bg-white/5 border-white/10'
-              }`}
-            >
-              <div className="flex flex-col md:flex-row justify-between gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-white font-bold text-lg">{item.name}</h3>
-                    <span className="text-[10px] bg-white/10 text-slate-400 px-2 py-0.5 rounded-md uppercase font-black tracking-tighter">
-                      {item.role}
-                    </span>
-                  </div>
-                  <p className="text-slate-400 text-sm italic leading-relaxed mb-4">"{item.message}"</p>
-                  <div className="text-[10px] text-slate-600 font-mono">ID: {item._id} • {new Date(item.createdAt).toLocaleDateString()}</div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Approval Toggle */}
-                  <button
-                    onClick={() => toggleApproval(item._id, item.isApproved)}
-                    className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                      item.isApproved
-                      ? 'bg-green-500/20 text-green-500 border border-green-500/30'
-                      : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500/30'
-                    }`}
-                  >
-                    {item.isApproved ? '● Live' : '○ Draft'}
-                  </button>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => deleteFeedback(item._id)}
-                    className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition-all"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </Motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState('');
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [removing, setRemoving] = useState(null);
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const response = await axios.get(`${CONFIG.API_URL}/feedback/admin`); setItems(response.data.data); } catch { setError('Could not load reviews. Please retry.'); } finally { setLoading(false); } }, []);
+  useEffect(() => { void load(); }, [load]);
+  const change = async (item, deleting = false) => { if (busy) return; setBusy(item._id); setError(''); try { if (deleting) { await axios.delete(`${CONFIG.API_URL}/feedback/${item._id}`); setItems(old => old.filter(value => value._id !== item._id)); setRemoving(null); } else { await axios.patch(`${CONFIG.API_URL}/feedback/${item._id}`, { isApproved: !item.isApproved }); setItems(old => old.map(value => value._id === item._id ? { ...value, isApproved: !item.isApproved } : value)); } } catch { setError('Could not save this change. Please try again.'); } finally { setBusy(''); } };
+  const filtered = items.filter(item => (filter === 'all' || (filter === 'approved') === item.isApproved) && [item.name, item.role, item.message].join(' ').toLowerCase().includes(query.toLowerCase()));
+  return <section className="space-y-6"><div className="studio-toolbar"><label className="studio-search"><Search size={17} /><input aria-label="Search reviews" placeholder="Search clients or reviews…" value={query} onChange={event => setQuery(event.target.value)} /></label><select className="studio-select" aria-label="Review status" value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All reviews</option><option value="pending">Pending approval</option><option value="approved">Published</option></select><button className="studio-button" onClick={load} disabled={loading || Boolean(busy)}><RefreshCw size={15} />Refresh</button></div>{error && <p role="alert" className="studio-error">{error}</p>}{loading ? <p role="status" className="studio-panel studio-muted">Loading client reviews…</p> : <><p className="studio-muted text-xs">{filtered.length} shown · {items.filter(item => !item.isApproved).length} awaiting approval</p>{filtered.map(item => <article key={item._id} className="studio-panel"><div className="flex flex-wrap items-center justify-between gap-4"><div><h3 className="font-semibold">{item.name}</h3><p className="studio-muted text-xs mt-1">{item.role} · {new Date(item.createdAt).toLocaleDateString()}</p></div><span className="studio-chip">{item.isApproved ? 'Published' : 'Pending approval'}</span></div><p className="studio-muted whitespace-pre-wrap break-words my-6 text-sm">{item.message}</p><div className="flex gap-3"><button className="studio-button" disabled={Boolean(busy)} onClick={() => change(item)}><Check size={15} />{busy === item._id ? 'Saving…' : item.isApproved ? 'Unpublish review' : 'Approve & publish'}</button><button className="studio-button danger ml-auto" disabled={Boolean(busy)} onClick={() => setRemoving(item)} aria-label={`Delete review by ${item.name}`}><Trash2 size={15} /></button></div></article>)}{!filtered.length && <div className="studio-panel text-center py-12"><h3 className="font-semibold">{items.length ? 'No reviews match these filters' : 'No client reviews yet'}</h3><p className="studio-muted text-sm mt-3">{items.length ? 'Try another search or status.' : 'New submissions appear here for approval before publication.'}</p></div>}</>}{removing && <Dialog label="Delete client review" onClose={() => { if (!busy) setRemoving(null); }}><div className="absolute inset-0 bg-black/75" /><div className="studio-panel relative max-w-md w-full"><h3 className="text-xl font-semibold">Delete this review?</h3><p className="studio-muted my-5">The review from {removing.name} will be permanently removed.</p><div className="flex gap-3"><button className="studio-button" disabled={Boolean(busy)} onClick={() => setRemoving(null)}>Keep review</button><button className="studio-button danger" disabled={Boolean(busy)} onClick={() => change(removing, true)}>{busy ? 'Deleting…' : 'Delete permanently'}</button></div>{error && <p className="studio-error mt-4" role="alert">{error}</p>}</div></Dialog>}</section>;
 }

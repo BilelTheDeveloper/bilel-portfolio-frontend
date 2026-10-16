@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, FolderPlus, MessageSquare, Inbox, ShieldCheck, LogOut, ArrowUpRight } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Compass, MessageSquare, Inbox, ShieldCheck, LogOut, ArrowUpRight } from 'lucide-react';
 import axios from 'axios';
 import CONFIG, { clearAdminCsrf } from '../../api/config';
 const items = [
   { id: 'stats', label: 'Overview', icon: LayoutDashboard },
-  { id: 'add-project', label: 'Add project', icon: FolderPlus },
+  { id: 'projects', label: 'Project library', icon: FolderOpen },
   { id: 'feedback', label: 'Reviews', icon: MessageSquare },
   { id: 'messages', label: 'Inquiries', icon: Inbox },
-  { id: 'security', label: 'Security & access', icon: ShieldCheck }
+  { id: 'security', label: 'Security & access', icon: ShieldCheck },
+  { id: 'explore', label: 'Explore & tools', icon: Compass }
 ];
 export default function Sidebar({ activeTab, setActiveTab }) {
   const [busy, setBusy] = useState(false);

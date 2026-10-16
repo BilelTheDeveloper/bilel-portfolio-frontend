@@ -1,145 +1,66 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useOutletContext, useSearchParams } from 'react-router-dom';
+import { ArrowRight, ArrowUpRight, Download, FolderOpen, Inbox, MessageSquare, Plus, RefreshCw, ShieldCheck, Activity, Search, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import CONFIG from '../../api/config';
-import React, { useState, useEffect } from 'react';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
-
-// --- Components ---
 import Sidebar from './Sidebar';
-import AdminSecurity from './AdminSecurity';
-import { useLocation, useOutletContext } from 'react-router-dom';
 import AddProject from './AddProject';
+import AdminProjects from './AdminProjects';
 import AdminFeedback from './AdminFeedback';
-import AdminMessages from './AdminMessages'; // NEW: Import the Inquiry management page
-
+import AdminMessages from './AdminMessages';
+import AdminSecurity from './AdminSecurity';
+import './admin-studio.css';
+const pages = {
+  stats: ['Overview', 'A clear view of your portfolio, conversations, and next steps.'],
+  projects: ['Project library', 'Create, refine, and showcase your best work.'],
+  'add-project': ['Project editor', 'Build a case study worth exploring.'],
+  messages: ['Inquiries', 'Every conversation is a new possibility.'],
+  feedback: ['Reviews', 'Choose the client stories that appear on your portfolio.'],
+  explore: ['Explore your workspace', 'Useful tools for managing your portfolio in one place.'],
+  security: ['Security & access', 'Manage approved accounts, verified sessions, and recovery.']
+};
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('stats');
-  const location = useLocation();
-  const { admin } = useOutletContext();
+  const [params, setParams] = useSearchParams();
+  const activeTab = pages[params.get('tab')] ? params.get('tab') : 'stats';
+  const [editing, setEditing] = useState(null);
+  const [dirty, setDirty] = useState(false);
   const [overview, setOverview] = useState(null);
-  const [overviewError, setOverviewError] = useState(false);
-  useEffect(() => {
-    if (activeTab !== 'stats') return;
-    let active = true;
-    axios.get(`${CONFIG.API_URL}/auth/overview`).then(response => { if (active) { setOverview(response.data.data); setOverviewError(false); } }).catch(() => { if (active) setOverviewError(true); });
-    return () => { active = false; };
-  }, [activeTab]);
-
-  /**
-   * Unified Content Router
-   * Switches between views based on Sidebar selection
-   */
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'stats':
-        return (
-          <div className="space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Projects" value={overview?.projects ?? "—"} growth="Published" />
-              <StatCard title="Inquiries" value={overview?.inquiries ?? "—"} growth="Received" />
-              <StatCard title="Reviews" value={overview?.reviews ?? "—"} growth={`${overview?.pendingReviews ?? "—"} pending`} />
-            </div>
-
-            {/* Recent Activity Section */}
-            <div className="p-10 bg-white/2 border border-white/5 rounded-[2.5rem]">
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full bg-brand-primary"></span>
-                System Overview
-              </h3>
-              <div className="text-slate-500 text-sm italic font-medium">
-                {overviewError ? "Dashboard counts could not be loaded. Reopen this tab to retry." : overview ? "Counts reflect the current database. Review pending feedback and respond to inquiries from the sidebar." : "Loading current portfolio counts…"}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'add-project':
-        return <AddProject />;
-      case 'feedback':
-        return <AdminFeedback />;
-
-      case 'security':
-        return <AdminSecurity />;
-      case 'messages': // NEW: This case handles the Inquiries tab
-        return <AdminMessages />;
-
-      default:
-        return (
-          <div className="p-20 bg-white/2 border border-white/5 rounded-[3rem] text-center">
-            <p className="text-slate-500 italic">
-              The <span className="text-brand-primary font-bold">{activeTab}</span> module is currently under construction.
-            </p>
-          </div>
-        );
-    }
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [toolBusy, setToolBusy] = useState('');
+  const [toolNotice, setToolNotice] = useState('');
+  const [toolSearch, setToolSearch] = useState('');
+  const { admin } = useOutletContext();
+  const location = useLocation();
+  const navigateTab = tab => { if (dirty && !window.confirm('Discard your unsaved project changes?')) return; setDirty(false); setEditing(null); setParams({ tab }); };
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const response = await axios.get(`${CONFIG.API_URL}/auth/overview`); setOverview(response.data.data); } catch { setError('Could not load your workspace summary. Please retry.'); } finally { setLoading(false); } }, []);
+  useEffect(() => { void load(); }, [load]);
+  const edit = project => { setEditing(project); setParams({ tab: 'add-project' }); };
+  const exportProjects = async () => {
+    setToolBusy('export'); setToolNotice('');
+    try { const response = await axios.get(CONFIG.ENDPOINTS.PROJECTS); const url = URL.createObjectURL(new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), projects: response.data.data }, null, 2)], { type: 'application/json' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `portfolio-projects-${new Date().toISOString().slice(0, 10)}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setToolNotice('Project content exported. Images are included as URLs; this is not a full database backup.'); }
+    catch { setToolNotice('Export failed. Please try again.'); } finally { setToolBusy(''); }
   };
-
-  return (
-    <div className="min-h-screen bg-[#05070a] text-white selection:bg-brand-primary/30">
-      {/* Fixed Persistent Sidebar */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-
-      {/* Main Content Area */}
-      <main className="lg:ml-72 p-5 sm:p-8 lg:p-12 min-h-screen">
-
-        {/* Dynamic Header */}
-        <header className="flex flex-wrap gap-6 justify-between items-center mb-10">
-          <Motion.div
-            key={activeTab + "header"}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1 className="text-4xl font-black capitalize tracking-tighter">
-              {activeTab.replace('-', ' ')}
-            </h1>
-            <p className="text-slate-500 text-sm mt-1 font-bold uppercase tracking-widest opacity-70">
-              Bilel Dashboard <span className="mx-2">/</span> {activeTab}
-            </p>
-          </Motion.div>
-
-          <div className="flex items-center gap-6 bg-white/5 p-2 pr-6 rounded-2xl border border-white/10 hover:border-brand-primary/30 transition-all">
-            <div className="relative">
-               <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-primary to-blue-400 flex items-center justify-center text-xl shadow-lg">
-                 👨‍💻
-               </div>
-               <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-4 border-[#05070a] rounded-full"></span>
-            </div>
-            <div className="text-left">
-              <p className="text-xs font-black text-white leading-none mb-1 truncate max-w-[190px]" title={admin?.email}>{admin?.email || "Administrator"}</p>
-              <p className="text-[10px] text-brand-primary font-black uppercase tracking-tighter">{admin?.role || "Admin"} · Verified</p>
-            </div>
-          </div>
-        </header>
-
-        {location.state?.recoveryUsed && <p role="status" className="mb-7 p-4 border border-amber-300/20 rounded-xl text-amber-200 text-sm">You signed in with a recovery code. Keep your remaining codes safe. If your phone is lost, use the documented operator recovery procedure to replace your authenticator.</p>}
-        {/* Dynamic View Section with Professional Transitions */}
-        <AnimatePresence mode="wait">
-          <Motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            {renderContent()}
-          </Motion.div>
-        </AnimatePresence>
-      </main>
-    </div>
-  );
-}
-
-// Internal Mini-Component for Stats
-function StatCard({ title, value, growth }) {
-  return (
-    <div className="p-8 bg-white/2 border border-white/10 rounded-[2.5rem] hover:border-brand-primary/40 transition-all group relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 blur-3xl -z-10 group-hover:bg-brand-primary/10 transition-all"></div>
-      <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">{title}</p>
-      <div className="flex items-end justify-between">
-        <h3 className="text-5xl font-black text-white tracking-tighter group-hover:text-brand-primary transition-colors">{value}</h3>
-        <div className="px-3 py-1 bg-brand-primary/10 rounded-full border border-brand-primary/20">
-          <span className="text-brand-primary text-[10px] font-bold">{growth}</span>
-        </div>
-      </div>
-    </div>
-  );
+  const health = async () => { setToolBusy('health'); setToolNotice(''); try { const response = await axios.get(`${CONFIG.API_URL.replace(/\/api\/?$/, '')}/api/auth/overview`); setToolNotice(response.data.success ? 'Your authenticated API and database are responding.' : 'The API returned an unexpected response.'); } catch { setToolNotice('Could not reach the authenticated API. Retry or check your session.'); } finally { setToolBusy(''); } };
+  const tools = [
+    { title: 'Create a case study', text: 'Add a project with a cover, technologies, and the story behind your solution.', icon: Plus, action: () => navigateTab('add-project') },
+    { title: 'Browse your work', text: 'Search the project library, edit details, or preview the public page.', icon: FolderOpen, action: () => navigateTab('projects') },
+    { title: 'Manage access', text: 'Review approved administrators, sessions, and authenticator recovery.', icon: ShieldCheck, action: () => navigateTab('security') },
+    { title: 'Export project content', text: 'Download your project text and image links as a JSON file.', icon: Download, action: exportProjects },
+    { title: 'Check connection', text: 'Check that your signed-in API and database respond right now.', icon: Activity, action: health },
+    { title: 'Review client feedback', text: 'Approve client reviews before they appear on your website.', icon: MessageSquare, action: () => navigateTab('feedback') }
+  ];
+  const overviewContent = <div className="space-y-7">
+    <div className="studio-panel bg-gradient-to-r from-blue-500/10 to-transparent flex flex-wrap justify-between items-center gap-6"><div><p className="studio-eyebrow">Your creative workspace</p><h2 className="text-2xl sm:text-3xl font-semibold mt-3 mb-2">Good work deserves a great story.</h2><p className="studio-muted text-sm">Keep your projects current and your next conversation moving.</p></div><button className="studio-button primary" onClick={() => navigateTab('add-project')}><Plus size={16} />Create project</button></div>
+    <div className="studio-toolbar"><h2 className="text-lg font-semibold flex-1">Workspace at a glance</h2><button className="studio-button" onClick={load} disabled={loading}><RefreshCw size={14} />{loading ? 'Refreshing…' : 'Refresh'}</button></div>
+    {error && <p className="studio-error" role="alert">{error}</p>}<div className="studio-stats">{[{ label: 'Published projects', value: overview?.projects, tab: 'projects', icon: FolderOpen }, { label: 'Inquiries received', value: overview?.inquiries, tab: 'messages', icon: Inbox }, { label: 'Client reviews', value: overview?.reviews, tab: 'feedback', icon: MessageSquare }, { label: 'Awaiting approval', value: overview?.pendingReviews, tab: 'feedback', icon: CheckCircle2 }].map(item => { const Icon = item.icon; return <button key={item.label} className="studio-panel" onClick={() => navigateTab(item.tab)}><Icon size={18} className="text-blue-300" /><p className="studio-stat-number">{loading ? '…' : item.value ?? '—'}</p><p className="studio-muted text-xs">{item.label}</p></button>; })}</div>
+    <div className="studio-overview-grid"><section className="studio-panel"><h3 className="text-lg font-semibold mb-2">Make your next move</h3><button className="studio-task" onClick={() => navigateTab('feedback')}><div>Review client stories<small>{overview ? `${overview.pendingReviews} reviews awaiting approval` : 'Open the moderation queue'}</small></div><ArrowRight size={18} /></button><button className="studio-task" onClick={() => navigateTab('projects')}><div>Refresh your selected work<small>Edit case studies and homepage features</small></div><ArrowRight size={18} /></button><button className="studio-task" onClick={() => navigateTab('messages')}><div>Follow up on inquiries<small>Read messages and reply from your email app</small></div><ArrowRight size={18} /></button></section><section className="studio-panel"><ShieldCheck size={24} className="text-emerald-300 mb-5" /><h3 className="text-lg font-semibold">Your access is verified</h3><p className="studio-muted text-sm mt-3 mb-5">Signed in as {admin?.role}. Keep an eye on your active sessions and store your recovery codes safely.</p><button className="studio-button" onClick={() => navigateTab('security')}>Open security center<ArrowRight size={14} /></button></section></div>
+  </div>;
+  return <div className="studio"><a href="#admin-content" className="skip-link">Skip to workspace content</a><Sidebar activeTab={activeTab} setActiveTab={navigateTab} /><div className="studio-shell"><main className="studio-main" id="admin-content"><header className="studio-header"><div><p className="studio-eyebrow">Workspace / {pages[activeTab][0]}</p><h1>{pages[activeTab][0]}</h1><p className="studio-muted">{pages[activeTab][1]}</p></div><a className="studio-button" href="/" target="_blank" rel="noreferrer">View website<ArrowUpRight size={15} /></a></header>{location.state?.recoveryUsed && <p role="status" className="studio-notice mb-6">You used a recovery code. Keep your remaining codes safe and review your authenticator access.</p>}
+    {activeTab === 'stats' && overviewContent}
+    {activeTab === 'projects' && <AdminProjects onEdit={edit} onCreate={() => navigateTab('add-project')} />}
+    {activeTab === 'add-project' && <AddProject key={editing?._id || 'new'} initialProject={editing} onDirtyChange={setDirty} onCancel={() => navigateTab('projects')} onDone={() => { setDirty(false); setEditing(null); setParams({ tab: 'projects' }); void load(); }} />}
+    {activeTab === 'feedback' && <AdminFeedback />}{activeTab === 'messages' && <AdminMessages />}{activeTab === 'security' && <AdminSecurity />}
+    {activeTab === 'explore' && <section className="space-y-6"><label className="studio-search"><Search size={17} /><input aria-label="Find a workspace tool" placeholder="Find a tool…" value={toolSearch} onChange={event => setToolSearch(event.target.value)} /></label>{toolNotice && <p role="status" className="studio-notice">{toolNotice}</p>}<div className="studio-tool-grid">{tools.filter(tool => `${tool.title} ${tool.text}`.toLowerCase().includes(toolSearch.toLowerCase())).map(tool => { const Icon = tool.icon; return <button className="studio-panel hover:border-blue-400/40 transition-colors" disabled={Boolean(toolBusy)} onClick={tool.action} key={tool.title}><Icon size={26} /><h3>{tool.title}</h3><p className="studio-muted text-sm">{tool.text}</p><span className="text-blue-300 flex items-center gap-2 text-xs mt-6">{toolBusy ? 'Working…' : 'Open tool'}<ArrowRight size={14} /></span></button>; })}</div>{!tools.some(tool => `${tool.title} ${tool.text}`.toLowerCase().includes(toolSearch.toLowerCase())) && <p className="studio-panel studio-muted">No matching tools. Try another search.</p>}</section>}
+  </main></div></div>;
 }

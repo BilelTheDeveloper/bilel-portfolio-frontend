@@ -7,14 +7,18 @@ import CONFIG from '../../api/config';
 export default function AdminMessages() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState('');
 
   // 1. Fetch all messages from DB
   const fetchMessages = async () => {
+    setLoading(true); setError('');
     try {
       const res = await axios.get(`${CONFIG.API_URL}/messages`, { withCredentials: true });
       setMessages(res.data.data);
     } catch (err) {
-      console.error("Error fetching messages:", err);
+      setError(err.response?.data?.message || 'Could not load inquiries. Please retry.');
     } finally {
       setLoading(false);
     }
@@ -26,12 +30,14 @@ export default function AdminMessages() {
 
   // 2. Delete Message Logic
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
+    if (busy || !window.confirm("Permanently delete this inquiry?")) return;
+    setBusy(id); setError('');
     try {
       await axios.delete(`${CONFIG.API_URL}/messages/${id}`, { withCredentials: true });
-      setMessages(messages.filter((msg) => msg._id !== id));
+      setMessages(old => old.filter((msg) => msg._id !== id));
     } catch {
-      alert("Failed to delete message.");
+      setError('Could not delete this inquiry. Try again.');
+    } finally { setBusy('');
     }
   };
 
@@ -39,13 +45,13 @@ export default function AdminMessages() {
     return (
       <div className="flex flex-col items-center justify-center p-20 space-y-4">
         <div className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-xs">Accessing Encrypted Inbox...</p>
+        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-xs">Loading inquiries…</p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
         <div>
@@ -59,11 +65,13 @@ export default function AdminMessages() {
         </div>
       </div>
 
-      {/* Messages List */}
+      <div className="studio-toolbar"><label className="studio-search"><input aria-label="Search inquiries" placeholder="Search name, email, subject or message…" value={query} onChange={event => setQuery(event.target.value)} /></label><button className="studio-button" onClick={fetchMessages}>Refresh</button></div>
+      {error && <p className="studio-error" role="alert">{error}</p>}
+      {messages.length > 0 && !messages.some(msg => [msg.name, msg.email, msg.subject, msg.message].join(" ").toLowerCase().includes(query.toLowerCase())) && <p className="studio-panel studio-muted">No inquiries match your search.</p>}
       <div className="grid gap-6">
         <AnimatePresence mode='popLayout'>
           {messages.length > 0 ? (
-            messages.map((msg) => (
+            messages.filter(msg => [msg.name, msg.email, msg.subject, msg.message].join(" ").toLowerCase().includes(query.toLowerCase())).map((msg) => (
               <Motion.div
                 key={msg._id}
                 layout
@@ -108,6 +116,8 @@ export default function AdminMessages() {
                       <Mail size={20} className="group-hover/btn:scale-110 transition-transform"/>
                     </a>
                     <button
+                      disabled={Boolean(busy)}
+                      aria-label={`Delete inquiry from ${msg.name}`}
                       onClick={() => handleDelete(msg._id)}
                       className="p-4 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-slate-400 rounded-2xl transition-all group/btn"
                       title="Delete Message"
