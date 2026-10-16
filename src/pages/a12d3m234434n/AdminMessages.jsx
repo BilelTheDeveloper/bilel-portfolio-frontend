@@ -1,145 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { Mail, Trash2, Calendar, User, Tag } from 'lucide-react'; // Optional: install lucide-react or use SVGs
+import { ArrowUpRight, Inbox, Mail, RefreshCw, Search, Trash2 } from 'lucide-react';
 import CONFIG from '../../api/config';
-
-export default function AdminMessages() {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
-  const [busy, setBusy] = useState('');
-
-  // 1. Fetch all messages from DB
-  const fetchMessages = async () => {
-    setLoading(true); setError('');
-    try {
-      const res = await axios.get(`${CONFIG.API_URL}/messages`, { withCredentials: true });
-      setMessages(res.data.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Could not load inquiries. Please retry.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  // 2. Delete Message Logic
-  const handleDelete = async (id) => {
-    if (busy || !window.confirm("Permanently delete this inquiry?")) return;
-    setBusy(id); setError('');
-    try {
-      await axios.delete(`${CONFIG.API_URL}/messages/${id}`, { withCredentials: true });
-      setMessages(old => old.filter((msg) => msg._id !== id));
-    } catch {
-      setError('Could not delete this inquiry. Try again.');
-    } finally { setBusy('');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-20 space-y-4">
-        <div className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-xs">Loading inquiries…</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header Area */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter italic">
-            Inquiry <span className="text-brand-primary">Control.</span>
-          </h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">Manage your incoming leads and business inquiries.</p>
-        </div>
-        <div className="px-4 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-xl">
-          <span className="text-brand-primary font-black text-sm">{messages.length} TOTAL MESSAGES</span>
-        </div>
-      </div>
-
-      <div className="studio-toolbar"><label className="studio-search"><input aria-label="Search inquiries" placeholder="Search name, email, subject or message…" value={query} onChange={event => setQuery(event.target.value)} /></label><button className="studio-button" onClick={fetchMessages}>Refresh</button></div>
-      {error && <p className="studio-error" role="alert">{error}</p>}
-      {messages.length > 0 && !messages.some(msg => [msg.name, msg.email, msg.subject, msg.message].join(" ").toLowerCase().includes(query.toLowerCase())) && <p className="studio-panel studio-muted">No inquiries match your search.</p>}
-      <div className="grid gap-6">
-        <AnimatePresence mode='popLayout'>
-          {messages.length > 0 ? (
-            messages.filter(msg => [msg.name, msg.email, msg.subject, msg.message].join(" ").toLowerCase().includes(query.toLowerCase())).map((msg) => (
-              <Motion.div
-                key={msg._id}
-                layout
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="group relative bg-white/[0.02] border border-white/10 rounded-[2rem] p-5 sm:p-8 hover:bg-white/[0.04] hover:border-brand-primary/30 transition-all duration-500"
-              >
-                <div className="flex flex-col lg:flex-row justify-between gap-6">
-                  {/* Left: Sender Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primary">
-                        <User size={18} />
-                      </div>
-                      <div>
-                        <h3 className="text-white font-bold text-lg leading-tight">{msg.name}</h3>
-                        <p className="text-brand-primary text-xs font-black uppercase tracking-tighter">{msg.email}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">
-                       <span className="flex items-center gap-1"><Calendar size={12}/> {new Date(msg.createdAt).toLocaleDateString()}</span>
-                       <span className="flex items-center gap-1"><Tag size={12}/> {msg.subject}</span>
-                    </div>
-
-                    <p className="mb-3 text-xs text-slate-300">Email notification: {msg.notificationStatus === 'sent' ? 'sent' : msg.notificationStatus === 'failed' ? 'delivery failed — inquiry saved here' : msg.notificationStatus ? 'queued for delivery' : 'received before notification tracking'}</p>
-                    <div className="bg-slate-950/40 border border-white/5 p-4 sm:p-6 rounded-2xl relative">
-                      <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">
-                        {msg.message}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right: Actions */}
-                  <div className="flex lg:flex-col justify-end items-center gap-3">
-                    <a
-                      href={`mailto:${msg.email}`}
-                      className="p-4 bg-white/5 hover:bg-brand-primary hover:text-white text-slate-400 rounded-2xl transition-all group/btn"
-                      title="Reply via Email"
-                    >
-                      <Mail size={20} className="group-hover/btn:scale-110 transition-transform"/>
-                    </a>
-                    <button
-                      disabled={Boolean(busy)}
-                      aria-label={`Delete inquiry from ${msg.name}`}
-                      onClick={() => handleDelete(msg._id)}
-                      className="p-4 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-slate-400 rounded-2xl transition-all group/btn"
-                      title="Delete Message"
-                    >
-                      <Trash2 size={20} className="group-hover/btn:scale-110 transition-transform" />
-                    </button>
-                  </div>
-                </div>
-              </Motion.div>
-            ))
-          ) : (
-            <Motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="text-center py-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[3rem]"
-            >
-              <div className="text-4xl mb-4 opacity-20">📥</div>
-              <h3 className="text-white font-bold text-xl">Inbox is empty</h3>
-              <p className="text-slate-500 text-sm">No new inquiries at the moment. Time to run some Meta Ads?</p>
-            </Motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
+import Dialog from '../../components/Dialog';
+const states=['new','reviewing','contacted','archived'];
+export default function AdminMessages(){
+  const [messages,setMessages]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState('');
+  const [query,setQuery]=useState('');
+  const [filter,setFilter]=useState('all');
+  const [busy,setBusy]=useState('');
+  const [removing,setRemoving]=useState(null);
+  const load=useCallback(async()=>{setLoading(true);setError('');try{const response=await axios.get(`${CONFIG.API_URL}/messages`);if(!response.data.success||!Array.isArray(response.data.data))throw new Error();setMessages(response.data.data);}catch{setError('Could not load inquiries. Please try again.');}finally{setLoading(false);}},[]);
+  useEffect(()=>{void load();},[load]);
+  const changeStatus=async(id,status)=>{if(busy)return;setBusy(id);setError('');try{const response=await axios.patch(`${CONFIG.API_URL}/messages/${id}`,{status});setMessages(old=>old.map(message=>message._id===id?response.data.data:message));}catch{setError('Could not update this inquiry. Please try again.');}finally{setBusy('');}};
+  const remove=async()=>{if(busy)return;setBusy(removing._id);setError('');try{await axios.delete(`${CONFIG.API_URL}/messages/${removing._id}`);setMessages(old=>old.filter(message=>message._id!==removing._id));setRemoving(null);}catch{setError('Could not delete this inquiry. Please try again.');}finally{setBusy('');}};
+  const visible=messages.filter(message=>(filter==='all'||(message.status||'new')===filter)&&[message.name,message.email,message.company,message.subject,message.service,message.budget,message.timeline,message.message].join(' ').toLowerCase().includes(query.toLowerCase()));
+  return <section className="space-y-6"><div className="studio-stats">{[['All inquiries',messages.length],['New',messages.filter(m=>(m.status||'new')==='new').length],['In progress',messages.filter(m=>m.status==='reviewing').length],['Contacted',messages.filter(m=>m.status==='contacted').length]].map(([label,count])=><div className="studio-panel" key={label}><p className="studio-muted text-xs">{label}</p><strong className="text-3xl block mt-3">{count}</strong></div>)}</div><div className="studio-toolbar"><label className="studio-search"><Search size={16}/><input aria-label="Search inquiries" placeholder="Search clients, projects or briefs…" value={query} onChange={e=>setQuery(e.target.value)}/></label><select aria-label="Filter inquiry status" className="studio-select" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All statuses</option>{states.map(state=><option key={state} value={state}>{state[0].toUpperCase()+state.slice(1)}</option>)}</select><button className="studio-button" onClick={load} disabled={loading}><RefreshCw size={15}/>Refresh</button></div>{error&&<p className="studio-error" role="alert">{error}</p>}{loading?<p role="status" className="studio-panel studio-muted">Loading inquiries…</p>:<><p className="studio-muted text-xs" aria-live="polite">{visible.length} of {messages.length} inquiries</p>{visible.map(message=><article className="studio-panel space-y-5" key={message._id}><div className="flex flex-wrap justify-between items-start gap-4"><div className="min-w-0"><p className="studio-eyebrow">{message.service||'Portfolio inquiry'} · {new Date(message.createdAt).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</p><h2 className="text-xl font-semibold mt-2 break-words">{message.subject}</h2><p className="studio-muted text-sm mt-2 break-words">{message.name}{message.company?` · ${message.company}`:''}</p><a href={`mailto:${message.email}`} className="text-blue-300 text-sm break-all">{message.email}</a></div><select className="studio-select" aria-label={`Status for ${message.subject}`} value={message.status||'new'} disabled={Boolean(busy)} onChange={e=>changeStatus(message._id,e.target.value)}>{states.map(state=><option key={state} value={state}>{state[0].toUpperCase()+state.slice(1)}</option>)}</select></div><div className="flex gap-2 flex-wrap">{message.budget&&<span className="studio-chip">Budget: {message.budget}</span>}{message.timeline&&<span className="studio-chip">Timeline: {message.timeline}</span>}<span className="studio-chip">Ref: {message._id.slice(-8).toUpperCase()}</span></div><div className="rounded-xl border border-white/5 bg-black/15 p-4 sm:p-5"><p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap break-words">{message.message}</p></div><div className="flex flex-wrap justify-between gap-3 items-center"><p className="studio-muted text-xs">Saved in your inbox{message.notificationStatus==='sent'?' · Email notification sent':''}</p><div className="flex gap-2"><a className="studio-button" href={`mailto:${message.email}?subject=${encodeURIComponent('Re: '+message.subject)}`}><Mail size={15}/>Reply by email<ArrowUpRight size={13}/></a><button className="studio-button danger" disabled={Boolean(busy)} aria-label={`Delete inquiry from ${message.name}`} onClick={()=>setRemoving(message)}><Trash2 size={15}/></button></div></div></article>)}{!visible.length&&<div className="studio-panel text-center py-16"><Inbox size={32} className="mx-auto mb-4 text-blue-300"/><h2 className="text-xl font-semibold">{messages.length?'No matching inquiries':'Your inbox is ready'}</h2><p className="studio-muted text-sm mt-3">{messages.length?'Try another search or status filter.':'New project briefs from the Hire Me form will appear here.'}</p></div>}</>}{removing&&<Dialog label="Delete inquiry" onClose={()=>{if(!busy)setRemoving(null);}}><div className="absolute inset-0 bg-black/75"/><div className="studio-panel relative max-w-md w-full"><h2 className="text-xl font-semibold">Delete this inquiry?</h2><p className="studio-muted mt-3">The inquiry from {removing.name} will be permanently deleted. Use the Archived status if you want to keep it.</p><div className="flex gap-3 mt-5"><button className="studio-button" disabled={Boolean(busy)} onClick={()=>setRemoving(null)}>Keep inquiry</button><button className="studio-button danger" disabled={Boolean(busy)} onClick={remove}>{busy?'Deleting…':'Delete permanently'}</button></div>{error&&<p className="studio-error mt-3" role="alert">{error}</p>}</div></Dialog>}</section>;
 }
