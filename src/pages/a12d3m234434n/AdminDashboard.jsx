@@ -1,3 +1,4 @@
+import AdminSocialLinks from './AdminSocialLinks';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useOutletContext, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, Download, FolderOpen, Inbox, MessageSquare, Plus, RefreshCw, ShieldCheck, Activity, Search, CheckCircle2 } from 'lucide-react';
@@ -11,6 +12,7 @@ import AdminMessages from './AdminMessages';
 import AdminSecurity from './AdminSecurity';
 import './admin-studio.css';
 const pages = {
+  social: ['Social links', 'Manage the profiles visitors can open from your hero.'],
   stats: ['Overview', 'A clear view of your portfolio, conversations, and next steps.'],
   projects: ['Project library', 'Create, refine, and showcase your best work.'],
   'add-project': ['Project editor', 'Build a case study worth exploring.'],
@@ -32,7 +34,7 @@ export default function AdminDashboard() {
   const [toolSearch, setToolSearch] = useState('');
   const { admin } = useOutletContext();
   const location = useLocation();
-  const navigateTab = tab => { if (dirty && !window.confirm('Discard your unsaved project changes?')) return; setDirty(false); setEditing(null); setParams({ tab }); };
+  const navigateTab = tab => { if (dirty && !window.confirm('Discard your unsaved changes?')) return; setDirty(false); setEditing(null); setParams({ tab }); };
   const load = useCallback(async () => { setLoading(true); setError(''); try { const response = await axios.get(`${CONFIG.API_URL}/auth/overview`); setOverview(response.data.data); } catch { setError('Could not load your workspace summary. Please retry.'); } finally { setLoading(false); } }, []);
   useEffect(() => { void load(); }, [load]);
   const edit = project => { setEditing(project); setParams({ tab: 'add-project' }); };
@@ -57,6 +59,7 @@ export default function AdminDashboard() {
     <div className="studio-overview-grid"><section className="studio-panel"><h3 className="text-lg font-semibold mb-2">Make your next move</h3><button className="studio-task" onClick={() => navigateTab('feedback')}><div>Review client stories<small>{overview ? `${overview.pendingReviews} reviews awaiting approval` : 'Open the moderation queue'}</small></div><ArrowRight size={18} /></button><button className="studio-task" onClick={() => navigateTab('projects')}><div>Refresh your selected work<small>Edit case studies and homepage features</small></div><ArrowRight size={18} /></button><button className="studio-task" onClick={() => navigateTab('messages')}><div>Follow up on inquiries<small>Read messages and reply from your email app</small></div><ArrowRight size={18} /></button></section><section className="studio-panel"><ShieldCheck size={24} className="text-emerald-300 mb-5" /><h3 className="text-lg font-semibold">Your access is verified</h3><p className="studio-muted text-sm mt-3 mb-5">Signed in as {admin?.role}. Keep an eye on your active sessions and store your recovery codes safely.</p><button className="studio-button" onClick={() => navigateTab('security')}>Open security center<ArrowRight size={14} /></button></section></div>
   </div>;
   return <div className="studio"><a href="#admin-content" className="skip-link">Skip to workspace content</a><Sidebar activeTab={activeTab} setActiveTab={navigateTab} /><div className="studio-shell"><main className="studio-main" id="admin-content"><header className="studio-header"><div><p className="studio-eyebrow">Workspace / {pages[activeTab][0]}</p><h1>{pages[activeTab][0]}</h1><p className="studio-muted">{pages[activeTab][1]}</p></div><a className="studio-button" href="/" target="_blank" rel="noreferrer">View website<ArrowUpRight size={15} /></a></header>{location.state?.recoveryUsed && <p role="status" className="studio-notice mb-6">You used a recovery code. Keep your remaining codes safe and review your authenticator access.</p>}
+    {activeTab === 'social' && <AdminSocialLinks onDirtyChange={setDirty} />}
     {activeTab === 'stats' && overviewContent}
     {activeTab === 'projects' && <AdminProjects onEdit={edit} onCreate={() => navigateTab('add-project')} />}
     {activeTab === 'add-project' && <AddProject key={editing?._id || 'new'} initialProject={editing} onDirtyChange={setDirty} onCancel={() => navigateTab('projects')} onDone={() => { setDirty(false); setEditing(null); setParams({ tab: 'projects' }); void load(); }} />}

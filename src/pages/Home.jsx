@@ -1,8 +1,10 @@
+import axios from 'axios';
+import CONFIG from '../api/config';
 import ProjectCard from '../components/ProjectCard';
 import { createElement, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Code2, Box, ShieldCheck, Pencil, Mail } from 'lucide-react';
-import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 import { SiReact, SiNodedotjs, SiMongodb, SiNextdotjs, SiTypescript, SiTailwindcss, SiDocker, SiGit, SiExpress } from 'react-icons/si';
 import { FaAws } from 'react-icons/fa';
 import { getProjects } from '../api/projects';
@@ -21,9 +23,22 @@ const services = [
   [Pencil, 'UI/UX & Modern Design', 'Clean, responsive and user-friendly interfaces with modern design systems.'],
 ];
 function SocialLinks() {
-  return <div className="sc-socials"><a aria-label="GitHub" href={import.meta.env.VITE_GITHUB_URL || 'https://github.com/BilelTheDeveloper'} target="_blank" rel="noreferrer"><FaGithub /></a>{import.meta.env.VITE_LINKEDIN_URL && <a aria-label="LinkedIn" href={import.meta.env.VITE_LINKEDIN_URL} target="_blank" rel="noreferrer"><FaLinkedinIn /></a>}<a aria-label="Email Bilel" href="mailto:bilel.thedeveloper@gmail.com"><Mail /></a></div>;
-}
-export default function Home() {
+  const [links, setLinks] = useState({ github: import.meta.env.VITE_GITHUB_URL || 'https://github.com/BilelTheDeveloper', linkedin: '', instagram: '', email: 'bilel.thedeveloper@gmail.com' });
+  useEffect(() => { let active = true; axios.get(`${CONFIG.API_URL}/social-links`).then(response => { if (active && response.data.success) setLinks(response.data.data); }).catch(() => {}); return () => { active = false; }; }, []);
+  const profiles = [
+    ['GitHub', links.github, FaGithub],
+    ['LinkedIn', links.linkedin, FaLinkedinIn],
+    ['Instagram', links.instagram, FaInstagram],
+    ['Email Bilel', links.email ? 'mailto:' + links.email : '', Mail],
+  ];
+  return <div className="sc-socials" aria-label="Social profiles">
+    {profiles.map(([name, url, Icon]) => url ? (
+      <a key={name} aria-label={name} href={url} target={url.startsWith('mailto:') ? undefined : '_blank'} rel="noopener noreferrer" title={name}>{createElement(Icon)}</a>
+    ) : (
+      <button key={name} type="button" disabled aria-label={`${name} profile coming soon`} title={`${name} profile coming soon`}>{createElement(Icon)}</button>
+    ))}
+  </div>;
+}export default function Home() {
   const [contact, setContact] = useState(false);
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState('loading');

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, FolderOpen, Compass, MessageSquare, Inbox, ShieldCheck, LogOut, Menu, ArrowUpRight } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, Compass, MessageSquare, Inbox, ShieldCheck, LogOut, Link2, Menu, ArrowUpRight } from 'lucide-react';
 import axios from 'axios';
 import CONFIG, { clearAdminCsrf } from '../../api/config';
 const items = [
@@ -8,6 +8,7 @@ const items = [
   { id: 'projects', label: 'Project library', icon: FolderOpen },
   { id: 'feedback', label: 'Reviews', icon: MessageSquare },
   { id: 'messages', label: 'Inquiries', icon: Inbox },
+  { id: 'social', label: 'Social links', icon: Link2 },
   { id: 'security', label: 'Security & access', icon: ShieldCheck },
   { id: 'explore', label: 'Explore & tools', icon: Compass }
 ];
