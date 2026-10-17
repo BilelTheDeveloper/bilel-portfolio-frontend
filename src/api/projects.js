@@ -5,7 +5,7 @@ let cached;
 let cachedAt = 0;
 let version = 0;
 export function getProjects({ refresh = false } = {}) {
-  if (refresh) clearProjectsCache();
+  if (refresh) { version++; cached = undefined; cachedAt = 0; pending = undefined; }
   if (cached && Date.now() - cachedAt < 60000) return Promise.resolve(cached);
   if (!pending) {
     const current = version;
@@ -18,4 +18,4 @@ export function getProjects({ refresh = false } = {}) {
   }
   return pending;
 }
-export function clearProjectsCache() { version++; cached = undefined; cachedAt = 0; pending = undefined; }
+export function clearProjectsCache() { version++; cached = undefined; cachedAt = 0; pending = undefined; if (typeof window !== 'undefined') window.dispatchEvent(new Event('projects-updated')); }
