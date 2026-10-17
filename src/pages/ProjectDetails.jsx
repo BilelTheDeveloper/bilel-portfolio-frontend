@@ -1,3 +1,5 @@
+import ProjectStory from '../components/ProjectStory';
+import ContactModal from '../components/ContactModal';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion as Motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
@@ -424,45 +426,6 @@ function useReveal() {
   });
 }
 
-/* ─── PROGRESS BAR TRIGGER ────────────────────────────── */
-function useProgressBars() {
-  useEffect(() => {
-    const bars = document.querySelectorAll('.pd-bar');
-    const obs = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('run'); }),
-      { threshold: 0.3 }
-    );
-    bars.forEach(b => obs.observe(b));
-    return () => obs.disconnect();
-  });
-}
-
-/* ─── ANIMATED COUNTER ────────────────────────────────── */
-function Counter({ target, suffix = '', duration = 1800 }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
-  useEffect(() => {
-    let frame;
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true;
-        const t0 = Date.now();
-        const tick = () => {
-          const p = Math.min((Date.now() - t0) / duration, 1);
-          const ease = 1 - Math.pow(1 - p, 3);
-          setVal(Math.floor(ease * target));
-          if (p < 1) frame = requestAnimationFrame(tick); else setVal(target);
-        };
-        frame = requestAnimationFrame(tick);
-      }
-    }, { threshold: 0.5 });
-    if (ref.current) obs.observe(ref.current);
-    return () => { obs.disconnect(); cancelAnimationFrame(frame); };
-  }, [target, duration]);
-  return <span ref={ref}>{val}{suffix}</span>;
-}
-
 /* ─── LOADING SCREEN ──────────────────────────────────── */
 function LoadingScreen() {
   return (
@@ -483,6 +446,7 @@ function LoadingScreen() {
 export default function ProjectDetails() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
+  const [contact, setContact] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -494,7 +458,7 @@ export default function ProjectDetails() {
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.96]);
 
   useReveal();
-  useProgressBars();
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -587,7 +551,7 @@ export default function ProjectDetails() {
         </div>
         <div className="flex items-center gap-2">
           <div className="live-dot" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Live</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{project.link ? 'Website available' : 'Case study'}</span>
         </div>
       </Motion.nav>
 
@@ -775,29 +739,7 @@ export default function ProjectDetails() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════
-          STATS ROW
-      ══════════════════════════════════════════════════ */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1 rounded-[2rem] overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          {[
-            { label: 'Technologies Used', val: project.tags?.length || 0, suffix: '+', icon: <FiCode size={18} /> },
-            { label: 'Features Built', val: project.features?.length || 0, suffix: '', icon: <FiZap size={18} /> },
-            { label: 'Case Study', val: 1, suffix: '', icon: <FiCheckCircle size={18} /> },
-            { label: 'Project Links', val: project.link ? 1 : 0, suffix: '', icon: <FiShield size={18} /> },
-          ].map((st, i) => (
-            <div key={st.label} className="pd-reveal card-hover p-4 sm:p-8 text-center relative"
-              style={{ background: 'var(--dark-mid)', transitionDelay: `${i * 0.1}s` }}>
-              <div className="flex justify-center mb-4" style={{ color: '#3b82f6' }}>{st.icon}</div>
-              <p className="stat-val text-4xl text-white mb-2">
-                <Counter target={st.val} suffix={st.suffix} />
-              </p>
-              <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: '#475569' }}>{st.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ProjectStory project={project}/>
 
       {/* ══════════════════════════════════════════════════
           FEATURES + CHALLENGE + SOLUTION
@@ -862,7 +804,7 @@ export default function ProjectDetails() {
           <div className="lg:col-span-8 space-y-8">
 
             {/* THE CHALLENGE */}
-            <Motion.div
+            {project.challenges && <Motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -882,13 +824,13 @@ export default function ProjectDetails() {
                 </div>
               </div>
               <div className="glow-line mb-7" style={{ background: 'linear-gradient(90deg, transparent, rgba(239,68,68,0.4), transparent)' }} />
-              <p className="text-base leading-relaxed" style={{ color: '#94a3b8' }}>
-                {project.challenges || 'No challenge information provided for this project.'}
+              <p className="text-base leading-relaxed whitespace-pre-wrap" style={{ color: '#94a3b8' }}>
+                {project.challenges}
               </p>
-            </Motion.div>
+            </Motion.div>}
 
             {/* THE SOLUTION */}
-            <Motion.div
+            {project.solutions && <Motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -908,53 +850,11 @@ export default function ProjectDetails() {
                 </div>
               </div>
               <div className="glow-line mb-7" />
-              <p className="text-base leading-relaxed" style={{ color: '#cbd5e1' }}>
-                {project.solutions || 'No solution information provided for this project.'}
+              <p className="text-base leading-relaxed whitespace-pre-wrap" style={{ color: '#cbd5e1' }}>
+                {project.solutions}
               </p>
-            </Motion.div>
+            </Motion.div>}
 
-            {/* SKILL CONFIDENCE BARS */}
-            {project.tags && project.tags.length > 0 && (
-              <Motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-                className="pd-content-card relative card-hover rounded-[2rem] p-5 sm:p-8 lg:p-10"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
-              >
-                <span className="section-num" style={{ color: 'rgba(255,255,255,0.02)' }}>03</span>
-                <div className="flex items-center gap-4 mb-7">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                    style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.2)' }}>
-                    <FiCode size={22} style={{ color: '#38bdf8' }} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: 'rgba(56,189,248,0.6)' }}>Usage</p>
-                    <h3 className="text-2xl font-black text-white">Tech Breakdown.</h3>
-                  </div>
-                </div>
-                <div className="glow-line mb-7" style={{ background: 'linear-gradient(90deg, transparent, rgba(56,189,248,0.4), transparent)' }} />
-                <div className="space-y-5">
-                  {project.tags.slice(0, 6).map((tag, i) => {
-                    // Pseudo-randomised but stable bar widths based on index
-                    const widths = [95, 88, 82, 78, 90, 85];
-                    const w = widths[i % widths.length];
-                    return (
-                      <div key={tag}>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-bold text-white">{tag}</span>
-                          <span className="text-sm font-bold" style={{ color: '#3b82f6' }}>{w}%</span>
-                        </div>
-                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                          <div className="pd-bar h-full rounded-full" style={{ '--w': `${w}%`, background: 'linear-gradient(90deg, #1d4ed8, #3b82f6, #60a5fa)' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Motion.div>
-            )}
           </div>
         </div>
       </section>
@@ -962,7 +862,7 @@ export default function ProjectDetails() {
       {/* ══════════════════════════════════════════════════
           BOTTOM CTA
       ══════════════════════════════════════════════════ */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pb-32">
+      <section id="project-conversation" className="relative z-10 max-w-7xl mx-auto px-6 pb-32">
         <div className="glow-line mb-16 opacity-30" />
         <Motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -996,16 +896,16 @@ export default function ProjectDetails() {
               </span>
             </h2>
             <p className="text-slate-400 text-lg mb-10 max-w-md mx-auto">
-              Let's build your next project together — fast, secure, and built to last.
+              Have a similar workflow to improve? Tell me about your goals, budget, and what you need to work better.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/"
+              <button
+                onClick={() => setContact(true)}
                 className="glow-btn px-5 sm:px-10 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white"
                 style={{ background: '#3b82f6', boxShadow: '0 8px 32px rgba(59,130,246,0.35)' }}
               >
-                Hire Me →
-              </Link>
+                Discuss a Similar Project →
+              </button>
               <Link
                 to="/projects"
                 className="px-5 sm:px-10 py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white transition-all hover:bg-white/8"
@@ -1017,6 +917,7 @@ export default function ProjectDetails() {
           </div>
         </Motion.div>
       </section>
+      {contact && <ContactModal isOpen onClose={() => setContact(false)} projectContext={project.title}/>}
     </div>
   );
 }

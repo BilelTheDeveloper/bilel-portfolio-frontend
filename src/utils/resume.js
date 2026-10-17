@@ -2,7 +2,7 @@ export const resumeProfile = {
   name: 'Bilel Helal',
   role: 'Full-Stack Web Developer · MERN Stack',
   email: 'bilel.thedeveloper@gmail.com',
-  summary: 'Full-stack web developer specializing in the MERN stack. I build responsive, secure web applications, from interface design and API development to deployment. Available for freelance projects worldwide.',
+  summary: 'Full-stack web developer specializing in the MERN stack and practical problem solving. I work with clients to understand their needs and budget, agree on a clear scope, and build responsive web applications with regular updates, feedback, and practical advice.',
   skills: ['React', 'Next.js', 'Node.js', 'Express', 'MongoDB', 'Tailwind CSS', 'TypeScript', 'REST API', 'JWT Auth', 'Cloudinary', 'Vercel', 'AWS', 'Git', 'Docker'],
   experience: [
     { period: '2024 - Present', title: 'Full-Stack Developer', company: 'Freelance', description: 'Building MERN stack web applications for clients, from UI design to deployment on Vercel and AWS.' },
